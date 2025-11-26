@@ -1,45 +1,57 @@
-import { useEffect, useRef } from 'react';
+import { Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createPhaserGame } from '@/game';
-import styles from './GamePage.module.css';
+import { Game3DScene } from '@/game/3d/Game3DScene';
+
+function LoadingScreen() {
+  return (
+    <div style={{
+      width: '100vw',
+      height: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: '#1a1a2e',
+      color: 'white',
+    }}>
+      <div style={{ fontSize: '48px', marginBottom: '20px' }}>🏛️</div>
+      <div style={{ fontSize: '24px', marginBottom: '10px' }}>정랜디 3D</div>
+      <div style={{ fontSize: '16px', color: '#888' }}>로딩 중...</div>
+      <div style={{
+        width: '200px',
+        height: '4px',
+        background: '#333',
+        borderRadius: '2px',
+        marginTop: '20px',
+        overflow: 'hidden',
+      }}>
+        <div style={{
+          width: '50%',
+          height: '100%',
+          background: '#3498db',
+          animation: 'loading 1s infinite ease-in-out',
+        }} />
+      </div>
+      <style>{`
+        @keyframes loading {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(200%); }
+        }
+      `}</style>
+    </div>
+  );
+}
 
 export function GamePage() {
-  const gameContainerRef = useRef<HTMLDivElement>(null);
-  const gameRef = useRef<Phaser.Game | null>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (gameContainerRef.current && !gameRef.current) {
-      gameRef.current = createPhaserGame(gameContainerRef.current);
-    }
-
-    return () => {
-      if (gameRef.current) {
-        gameRef.current.destroy(true);
-        gameRef.current = null;
-      }
-    };
-  }, []);
-
-  const handleBack = () => {
-    if (gameRef.current) {
-      gameRef.current.destroy(true);
-      gameRef.current = null;
-    }
+  const handleBackToLobby = () => {
     navigate('/');
   };
 
   return (
-    <div className={styles.gamePage}>
-      <header className={styles.header}>
-        <button className={`btn ${styles.backButton}`} onClick={handleBack}>
-          ← 로비로
-        </button>
-        <h1 className={styles.title}>정랜디</h1>
-        <div className={styles.spacer} />
-      </header>
-
-      <main className={styles.gameContainer} ref={gameContainerRef} />
-    </div>
+    <Suspense fallback={<LoadingScreen />}>
+      <Game3DScene onBackToLobby={handleBackToLobby} />
+    </Suspense>
   );
 }

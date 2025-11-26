@@ -11,12 +11,6 @@ const rarityNames: Record<Rarity, string> = {
   [Rarity.MYTHIC]: '신화',
 };
 
-const partyNames: Record<Party, string> = {
-  [Party.KUK]: '국민의힘',
-  [Party.MIN]: '더불어민주당',
-  [Party.NEUTRAL]: '중립',
-};
-
 export function TierListPage() {
   const navigate = useNavigate();
 

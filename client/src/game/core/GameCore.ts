@@ -4,26 +4,33 @@ import {
   CharacterInstance,
   MobInstance,
   Character,
-  Mob,
   Wave,
   Party,
   Rarity,
   Stats,
+  PlayerState,
+  PlayerZone,
 } from '@/types';
-import { defaultGameConfig, rarityWeights, partyWeights } from '@/data/config';
+import { defaultGameConfig, rarityWeights, partyWeights, getZoneCenter, getMapCenter } from '@/data/config';
 import { allCharacters, getCharactersByPartyAndRarity } from '@/data/characters';
 import { getMobById, getWave } from '@/data/mobs';
 
 /**
  * GameCore - Pure game logic, no rendering
  *
- * This class handles all game state and logic.
- * Later, this can be moved to server for multiplayer.
+ * Redesigned for 4-player action defense:
+ * - Each player has their own zone with a statue to defend
+ * - Mobs loop around the statue, dealing damage on each complete loop
+ * - Players directly control their hero character
+ * - Central boss spawns every N waves for cooperative combat
  */
 export class GameCore {
   private state: GameState;
   private config: GameConfig;
   private eventCallbacks: Map<string, Function[]> = new Map();
+  private spawnQueue: { mobId: string; zone: PlayerZone; statMultiplier: number }[] = [];
+  private spawnTimer: number = 0;
+  private currentSpawnInterval: number = 2000;
 
   constructor(playerId: string, config: GameConfig = defaultGameConfig) {
     this.config = config;
@@ -33,9 +40,13 @@ export class GameCore {
   // ===== STATE INITIALIZATION =====
 
   private createInitialState(playerId: string): GameState {
+    // Create single player for now (expandable to 4)
+    const players: PlayerState[] = [
+      this.createPlayerState(playerId, 'topLeft'),
+    ];
+
     return {
       gameId: this.generateId(),
-      playerId,
       isRunning: false,
       isPaused: false,
 
@@ -43,20 +54,40 @@ export class GameCore {
       totalWaves: this.config.totalWaves,
       waveInProgress: false,
 
-      playerLives: this.config.startingLives,
+      players,
+      localPlayerId: playerId,
+
+      activeMobs: [],
+      centralBoss: null,
+      bossActive: false,
+
+      rollCost: this.config.rollCost,
+
+      elapsedTime: 0,
+      waveStartTime: 0,
+    };
+  }
+
+  private createPlayerState(playerId: string, zone: PlayerZone): PlayerState {
+    const center = getZoneCenter(zone, this.config.mapWidth, this.config.mapHeight);
+
+    return {
+      playerId,
+      zone,
+      statue: {
+        zoneId: zone,
+        hp: this.config.statueMaxHp,
+        maxHp: this.config.statueMaxHp,
+        position: center,
+      },
+      hero: null,
       inventory: {
         characters: [],
         gold: this.config.startingGold,
         freeRolls: this.config.freeRollsPerWave,
       },
-      deployedCharacters: [],
-      activeMobs: [],
-
-      gold: this.config.startingGold,
-      rollCost: this.config.rollCost,
-
-      elapsedTime: 0,
-      waveStartTime: 0,
+      isAlive: true,
+      passiveGoldTimer: 0,
     };
   }
 
@@ -74,6 +105,14 @@ export class GameCore {
     return this.config;
   }
 
+  getLocalPlayer(): PlayerState | undefined {
+    return this.state.players.find(p => p.playerId === this.state.localPlayerId);
+  }
+
+  getPlayerByZone(zone: PlayerZone): PlayerState | undefined {
+    return this.state.players.find(p => p.zone === zone);
+  }
+
   // ===== GAME FLOW =====
 
   startGame(): void {
@@ -81,8 +120,10 @@ export class GameCore {
     this.state.currentWave = 0;
     this.emit('gameStart', this.state);
 
-    // Give initial free rolls
-    this.grantFreeRolls(3);
+    // Give initial free rolls to all players
+    for (const player of this.state.players) {
+      player.inventory.freeRolls = 3;
+    }
   }
 
   pauseGame(): void {
@@ -115,30 +156,111 @@ export class GameCore {
 
     this.state.waveInProgress = true;
     this.state.waveStartTime = this.state.elapsedTime;
+    this.currentSpawnInterval = wave.spawnInterval;
 
-    // Grant free rolls for wave
-    this.grantFreeRolls(this.config.freeRollsPerWave);
+    // Grant free rolls to all players
+    for (const player of this.state.players) {
+      if (player.isAlive) {
+        player.inventory.freeRolls += this.config.freeRollsPerWave;
+      }
+    }
 
-    this.emit('waveStart', { wave, waveNumber: this.state.currentWave });
+    // Check if this is a boss wave
+    const isBossWave = this.state.currentWave % this.config.bossWaveInterval === 0;
+    if (isBossWave) {
+      this.spawnCentralBoss();
+    }
+
+    // Build spawn queue from wave mobs
+    this.spawnQueue = [];
+    for (const mobDef of wave.mobs) {
+      for (let i = 0; i < mobDef.count; i++) {
+        // Spawn mobs to player zones
+        for (const player of this.state.players) {
+          if (player.isAlive) {
+            this.spawnQueue.push({
+              mobId: mobDef.mobId,
+              zone: player.zone,
+              statMultiplier: mobDef.statMultiplier ?? 1.0,
+            });
+          }
+        }
+      }
+    }
+    // Shuffle the spawn queue for variety
+    this.shuffleArray(this.spawnQueue);
+    this.spawnTimer = 0;
+
+    this.emit('waveStart', { wave, waveNumber: this.state.currentWave, isBossWave });
     return wave;
   }
 
-  spawnMob(mobId: string, statMultiplier: number = 1.0): MobInstance | null {
+  private shuffleArray<T>(array: T[]): void {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+  }
+
+  /**
+   * Spawn a mob in a specific player zone
+   * Mobs will loop around the player's statue
+   */
+  spawnMob(mobId: string, zone: PlayerZone, statMultiplier: number = 1.0): MobInstance | null {
     const mob = getMobById(mobId);
     if (!mob) return null;
+
+    const player = this.getPlayerByZone(zone);
+    if (!player || !player.isAlive) return null;
+
+    // Start position is on the loop path (top-left corner of square path)
+    const center = player.statue.position;
+    const pathOffset = (this.config.zoneSize ?? 800) * 0.38;
+    const startX = center.x - pathOffset;
+    const startY = center.y - pathOffset;
 
     const instance: MobInstance = {
       instanceId: this.generateId(),
       mob,
       currentStats: this.scaleStats(mob.baseStats, statMultiplier),
-      position: { x: 0, y: 0 }, // Set by renderer
+      position: { x: startX, y: startY },
       pathProgress: 0,
+      loopCount: 0,
+      zone,
       activeDebuffs: [],
     };
 
     this.state.activeMobs.push(instance);
     this.emit('mobSpawn', instance);
     return instance;
+  }
+
+  /**
+   * Spawn central boss for cooperative combat
+   */
+  private spawnCentralBoss(): void {
+    const bossMob = getMobById('mob_major_scandal');
+    if (!bossMob) return;
+
+    const center = getMapCenter(this.config.mapWidth, this.config.mapHeight);
+
+    // Scale boss based on current wave
+    const waveMultiplier = 1 + (this.state.currentWave / 10);
+
+    const boss: MobInstance = {
+      instanceId: this.generateId(),
+      mob: bossMob,
+      currentStats: this.scaleStats(bossMob.baseStats, waveMultiplier),
+      position: center,
+      pathProgress: 0,
+      loopCount: 0,
+      zone: 'center',
+      activeDebuffs: [],
+    };
+
+    this.state.centralBoss = boss;
+    this.state.bossActive = true;
+    this.emit('bossSpawn', boss);
   }
 
   private scaleStats(base: Stats, multiplier: number): Stats {
@@ -151,35 +273,104 @@ export class GameCore {
     };
   }
 
-  onMobReachedEnd(mobId: string): void {
-    const index = this.state.activeMobs.findIndex(m => m.instanceId === mobId);
-    if (index === -1) return;
+  /**
+   * Called when a mob completes one loop around the statue
+   */
+  onMobCompletedLoop(mobId: string): void {
+    const mob = this.state.activeMobs.find(m => m.instanceId === mobId);
+    if (!mob || mob.zone === 'center') return;
 
-    this.state.activeMobs.splice(index, 1);
-    this.state.playerLives--;
+    mob.loopCount++;
+    mob.pathProgress = 0;
 
-    this.emit('mobReachedEnd', { mobId, livesRemaining: this.state.playerLives });
+    // Deal damage to the statue
+    const player = this.getPlayerByZone(mob.zone);
+    if (player) {
+      player.statue.hp -= this.config.statueDamagePerLoop;
+      this.emit('statueDamaged', {
+        zone: mob.zone,
+        damage: this.config.statueDamagePerLoop,
+        remainingHp: player.statue.hp,
+      });
 
-    if (this.state.playerLives <= 0) {
-      this.endGame(false);
+      // Check if statue destroyed
+      if (player.statue.hp <= 0) {
+        this.onPlayerDefeated(player.playerId);
+      }
     }
   }
 
   onMobKilled(mobId: string, killerId: string): void {
+    // Check if it's the central boss
+    if (this.state.centralBoss?.instanceId === mobId) {
+      this.onBossKilled(killerId);
+      return;
+    }
+
     const index = this.state.activeMobs.findIndex(m => m.instanceId === mobId);
     if (index === -1) return;
 
     const mob = this.state.activeMobs[index];
     this.state.activeMobs.splice(index, 1);
 
-    // Award gold
-    this.addGold(mob.mob.goldReward);
+    // Award gold to the player who killed it
+    const killer = this.state.players.find(p => p.hero?.instanceId === killerId);
+    if (killer) {
+      killer.inventory.gold += mob.mob.goldReward;
+      this.emit('goldChanged', {
+        playerId: killer.playerId,
+        amount: mob.mob.goldReward,
+        total: killer.inventory.gold,
+      });
+    }
 
     this.emit('mobKilled', { mob, killerId });
 
-    // Check wave complete
-    if (this.state.activeMobs.length === 0 && this.state.waveInProgress) {
+    // Check wave complete (no mobs, no boss, no pending spawns)
+    if (this.state.activeMobs.length === 0 && !this.state.bossActive && this.state.waveInProgress && this.spawnQueue.length === 0) {
       this.completeWave();
+    }
+  }
+
+  private onBossKilled(killerId: string): void {
+    if (!this.state.centralBoss) return;
+
+    const boss = this.state.centralBoss;
+
+    // Award bonus gold to ALL alive players
+    const bonusGold = boss.mob.goldReward;
+    for (const player of this.state.players) {
+      if (player.isAlive) {
+        player.inventory.gold += bonusGold;
+        this.emit('goldChanged', {
+          playerId: player.playerId,
+          amount: bonusGold,
+          total: player.inventory.gold,
+        });
+      }
+    }
+
+    this.state.centralBoss = null;
+    this.state.bossActive = false;
+    this.emit('bossKilled', { boss, killerId });
+
+    // Check wave complete (no mobs, no pending spawns)
+    if (this.state.activeMobs.length === 0 && this.state.waveInProgress && this.spawnQueue.length === 0) {
+      this.completeWave();
+    }
+  }
+
+  private onPlayerDefeated(playerId: string): void {
+    const player = this.state.players.find(p => p.playerId === playerId);
+    if (!player) return;
+
+    player.isAlive = false;
+    this.emit('playerDefeated', { playerId, zone: player.zone });
+
+    // Check if all players defeated
+    const alivePlayers = this.state.players.filter(p => p.isAlive);
+    if (alivePlayers.length === 0) {
+      this.endGame(false);
     }
   }
 
@@ -187,8 +378,18 @@ export class GameCore {
     this.state.waveInProgress = false;
     const wave = getWave(this.state.currentWave);
 
+    // Award bonus gold to all alive players
     if (wave?.bonusGold) {
-      this.addGold(wave.bonusGold);
+      for (const player of this.state.players) {
+        if (player.isAlive) {
+          player.inventory.gold += wave.bonusGold;
+          this.emit('goldChanged', {
+            playerId: player.playerId,
+            amount: wave.bonusGold,
+            total: player.inventory.gold,
+          });
+        }
+      }
     }
 
     this.emit('waveComplete', { waveNumber: this.state.currentWave });
@@ -201,57 +402,64 @@ export class GameCore {
 
   // ===== GACHA / ROLLING =====
 
-  canRoll(): boolean {
-    return (
-      this.state.inventory.freeRolls > 0 ||
-      this.state.gold >= this.state.rollCost
-    );
+  canRoll(playerId: string): boolean {
+    const player = this.state.players.find(p => p.playerId === playerId);
+    if (!player || !player.isAlive) return false;
+
+    return player.inventory.freeRolls > 0 || player.inventory.gold >= this.state.rollCost;
   }
 
-  roll(): CharacterInstance | null {
-    if (!this.canRoll()) return null;
+  roll(playerId: string): CharacterInstance | null {
+    const player = this.state.players.find(p => p.playerId === playerId);
+    if (!player || !this.canRoll(playerId)) return null;
 
     // Deduct cost
-    if (this.state.inventory.freeRolls > 0) {
-      this.state.inventory.freeRolls--;
+    if (player.inventory.freeRolls > 0) {
+      player.inventory.freeRolls--;
     } else {
-      this.state.gold -= this.state.rollCost;
+      player.inventory.gold -= this.state.rollCost;
+      this.emit('goldChanged', {
+        playerId,
+        amount: -this.state.rollCost,
+        total: player.inventory.gold,
+      });
     }
 
     // Roll for character
     const character = this.rollCharacter();
     const instance = this.createCharacterInstance(character);
 
-    this.state.inventory.characters.push(instance);
-    this.emit('roll', { character: instance });
+    // Place character directly on map in player's zone
+    const center = player.statue.position;
+    const zoneSize = this.config.zoneSize ?? 800;
+    // Random position within the zone (inside the path area)
+    const halfZone = zoneSize * 0.3;
+    instance.position = {
+      x: center.x + (Math.random() - 0.5) * halfZone * 2,
+      y: center.y + (Math.random() - 0.5) * halfZone * 2,
+    };
+    instance.isDeployed = true;
+
+    player.inventory.characters.push(instance);
+    this.emit('roll', { playerId, character: instance });
 
     return instance;
   }
 
   private rollCharacter(): Character {
-    // Roll rarity
     const rarity = this.rollRarity();
-    // Roll party
     const party = this.rollParty();
 
-    // Get available characters
     let candidates = getCharactersByPartyAndRarity(party, rarity);
 
-    // If no generic cards, try to find any character with matching criteria
     if (candidates.length === 0) {
-      candidates = allCharacters.filter(
-        c => c.party === party && c.rarity === rarity
-      );
+      candidates = allCharacters.filter(c => c.party === party && c.rarity === rarity);
     }
 
-    // Fallback to common if nothing found
     if (candidates.length === 0) {
-      candidates = allCharacters.filter(
-        c => c.party === party && c.rarity === Rarity.COMMON
-      );
+      candidates = allCharacters.filter(c => c.party === party && c.rarity === Rarity.COMMON);
     }
 
-    // Random selection
     return candidates[Math.floor(Math.random() * candidates.length)];
   }
 
@@ -294,105 +502,100 @@ export class GameCore {
     };
   }
 
-  grantFreeRolls(count: number): void {
-    this.state.inventory.freeRolls += count;
-    this.emit('freeRollsGranted', { count, total: this.state.inventory.freeRolls });
-  }
+  // ===== HERO MANAGEMENT =====
 
-  // ===== CHARACTER MANAGEMENT =====
+  /**
+   * Select a character from inventory to be the active hero
+   */
+  selectHero(playerId: string, characterInstanceId: string): boolean {
+    const player = this.state.players.find(p => p.playerId === playerId);
+    if (!player || !player.isAlive) return false;
 
-  deployCharacter(instanceId: string, x: number, y: number): boolean {
-    if (this.state.deployedCharacters.length >= this.config.maxDeployedCharacters) {
-      return false;
-    }
-
-    const char = this.state.inventory.characters.find(
-      c => c.instanceId === instanceId
-    );
-    if (!char || char.isDeployed) return false;
-
-    char.isDeployed = true;
-    char.position = { x, y };
-    this.state.deployedCharacters.push(char);
-
-    this.emit('characterDeployed', char);
-    return true;
-  }
-
-  undeployCharacter(instanceId: string): boolean {
-    const index = this.state.deployedCharacters.findIndex(
-      c => c.instanceId === instanceId
-    );
-    if (index === -1) return false;
-
-    const char = this.state.deployedCharacters[index];
-    char.isDeployed = false;
-    this.state.deployedCharacters.splice(index, 1);
-
-    this.emit('characterUndeployed', char);
-    return true;
-  }
-
-  moveCharacter(instanceId: string, x: number, y: number): boolean {
-    const char = this.state.deployedCharacters.find(
-      c => c.instanceId === instanceId
-    );
+    const char = player.inventory.characters.find(c => c.instanceId === characterInstanceId);
     if (!char) return false;
 
-    char.position = { x, y };
-    this.emit('characterMoved', { char, x, y });
+    // Place hero at statue position
+    const center = player.statue.position;
+    char.position = { x: center.x, y: center.y - 30 };
+    char.isDeployed = true;
+
+    player.hero = char;
+    this.emit('heroSelected', { playerId, hero: char });
     return true;
+  }
+
+  /**
+   * Move hero to a target position
+   */
+  moveHero(playerId: string, targetX: number, targetY: number): boolean {
+    const player = this.state.players.find(p => p.playerId === playerId);
+    if (!player || !player.hero) return false;
+
+    // Store target for movement interpolation in update loop
+    this.emit('heroMoveCommand', {
+      playerId,
+      hero: player.hero,
+      targetX,
+      targetY,
+    });
+    return true;
+  }
+
+  /**
+   * Update hero position (called from renderer during movement)
+   */
+  updateHeroPosition(playerId: string, x: number, y: number): void {
+    const player = this.state.players.find(p => p.playerId === playerId);
+    if (!player || !player.hero) return;
+
+    player.hero.position = { x, y };
   }
 
   // ===== COMBAT =====
 
   dealDamage(attackerId: string, targetId: string, damage: number): void {
+    // Check if targeting central boss
+    if (this.state.centralBoss?.instanceId === targetId) {
+      const actualDamage = Math.max(1, damage - this.state.centralBoss.currentStats.def);
+      this.state.centralBoss.currentStats.hp -= actualDamage;
+
+      this.emit('damage', { attackerId, targetId, damage: actualDamage, isBoss: true });
+
+      if (this.state.centralBoss.currentStats.hp <= 0) {
+        this.onBossKilled(attackerId);
+      }
+      return;
+    }
+
+    // Regular mob
     const target = this.state.activeMobs.find(m => m.instanceId === targetId);
     if (!target) return;
 
     const actualDamage = Math.max(1, damage - target.currentStats.def);
     target.currentStats.hp -= actualDamage;
 
-    this.emit('damage', { attackerId, targetId, damage: actualDamage });
+    this.emit('damage', { attackerId, targetId, damage: actualDamage, isBoss: false });
 
     if (target.currentStats.hp <= 0) {
       this.onMobKilled(targetId, attackerId);
     }
   }
 
-  useSkill(characterId: string, skillId: string, targetId?: string): boolean {
-    const char = this.state.deployedCharacters.find(
-      c => c.instanceId === characterId
-    );
-    if (!char) return false;
+  useSkill(playerId: string, skillId: string, targetX?: number, targetY?: number): boolean {
+    const player = this.state.players.find(p => p.playerId === playerId);
+    if (!player || !player.hero) return false;
 
-    const skill = char.character.skills.find(s => s.id === skillId);
+    const skill = player.hero.character.skills.find(s => s.id === skillId);
     if (!skill) return false;
 
     // Check cooldown
-    const cooldownEnd = char.skillCooldowns.get(skillId) ?? 0;
+    const cooldownEnd = player.hero.skillCooldowns.get(skillId) ?? 0;
     if (this.state.elapsedTime < cooldownEnd) return false;
 
     // Set cooldown
-    char.skillCooldowns.set(skillId, this.state.elapsedTime + skill.cooldown);
+    player.hero.skillCooldowns.set(skillId, this.state.elapsedTime + skill.cooldown);
 
-    this.emit('skillUsed', { char, skill, targetId });
-    return true;
-  }
-
-  // ===== ECONOMY =====
-
-  addGold(amount: number): void {
-    this.state.gold += amount;
-    this.state.inventory.gold = this.state.gold;
-    this.emit('goldChanged', { amount, total: this.state.gold });
-  }
-
-  spendGold(amount: number): boolean {
-    if (this.state.gold < amount) return false;
-    this.state.gold -= amount;
-    this.state.inventory.gold = this.state.gold;
-    this.emit('goldChanged', { amount: -amount, total: this.state.gold });
+    this.emit('skillUsed', { playerId, skill, targetX, targetY });
     return true;
   }
 
@@ -403,27 +606,61 @@ export class GameCore {
 
     this.state.elapsedTime += deltaTime;
 
-    // Update mob positions along path
+    // Process spawn queue
+    this.processSpawnQueue(deltaTime);
+
+    // Update mob positions along loop paths
     this.updateMobs(deltaTime);
 
-    // Update character cooldowns
-    this.updateCooldowns(deltaTime);
+    // Update passive gold income
+    this.updatePassiveGold(deltaTime);
   }
 
-  private updateMobs(deltaTime: number): void {
-    for (const mob of this.state.activeMobs) {
-      // Path progress (0 to 1)
-      const progressPerSecond = mob.currentStats.speed / 1000;
-      mob.pathProgress += progressPerSecond * (deltaTime / 1000);
+  private processSpawnQueue(deltaTime: number): void {
+    if (this.spawnQueue.length === 0) return;
 
-      if (mob.pathProgress >= 1) {
-        this.onMobReachedEnd(mob.instanceId);
+    this.spawnTimer += deltaTime;
+    if (this.spawnTimer >= this.currentSpawnInterval) {
+      this.spawnTimer -= this.currentSpawnInterval;
+
+      const toSpawn = this.spawnQueue.shift();
+      if (toSpawn) {
+        this.spawnMob(toSpawn.mobId, toSpawn.zone, toSpawn.statMultiplier);
       }
     }
   }
 
-  private updateCooldowns(_deltaTime: number): void {
-    // Cooldowns are timestamp-based, no update needed
+  private updateMobs(deltaTime: number): void {
+    for (const mob of this.state.activeMobs) {
+      if (mob.zone === 'center') continue; // Boss doesn't move
+
+      // Path progress (0 to 1 represents one full loop)
+      const progressPerSecond = mob.currentStats.speed / 1000;
+      mob.pathProgress += progressPerSecond * (deltaTime / 1000);
+
+      // Check if completed a loop
+      if (mob.pathProgress >= 1) {
+        this.onMobCompletedLoop(mob.instanceId);
+      }
+    }
+  }
+
+  private updatePassiveGold(deltaTime: number): void {
+    for (const player of this.state.players) {
+      if (!player.isAlive) continue;
+
+      player.passiveGoldTimer += deltaTime;
+      if (player.passiveGoldTimer >= this.config.passiveGoldInterval) {
+        player.passiveGoldTimer -= this.config.passiveGoldInterval;
+        player.inventory.gold += this.config.passiveGoldAmount;
+        this.emit('goldChanged', {
+          playerId: player.playerId,
+          amount: this.config.passiveGoldAmount,
+          total: player.inventory.gold,
+          isPassive: true,
+        });
+      }
+    }
   }
 
   // ===== EVENT SYSTEM =====
@@ -445,7 +682,7 @@ export class GameCore {
     }
   }
 
-  private emit(event: string, data?: any): void {
+  private emit(event: string, data?: unknown): void {
     const callbacks = this.eventCallbacks.get(event);
     if (callbacks) {
       for (const cb of callbacks) {

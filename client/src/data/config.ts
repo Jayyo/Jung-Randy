@@ -1,4 +1,4 @@
-import { GameConfig } from '@/types';
+import { GameConfig, PlayerZone } from '@/types';
 
 /**
  * Default game configuration
@@ -9,18 +9,60 @@ export const defaultGameConfig: GameConfig = {
   startingGold: 100,
   rollCost: 10,
   freeRollsPerWave: 1,
+  passiveGoldInterval: 10000,  // 10 seconds
+  passiveGoldAmount: 5,        // 5 gold per tick
 
-  // Player
-  startingLives: 20,
-  maxDeployedCharacters: 5,
+  // Statue (player base)
+  statueMaxHp: 100,
+  statueDamagePerLoop: 10,  // Damage when mob completes one loop
 
   // Game
   totalWaves: 20,
+  bossWaveInterval: 5,  // Boss every 5 waves
 
-  // Map dimensions (in pixels)
-  mapWidth: 1280,
-  mapHeight: 720,
+  // Map dimensions (in pixels) - much larger for 4 separated zones
+  mapWidth: 4000,
+  mapHeight: 4000,
+
+  // Zone configuration - rectangular zones
+  zoneSize: 800,         // Size of each player zone (square)
+  pathWidth: 60,         // Width of mob walking path
+  bridgeWidth: 120,      // Width of bridges to center
+  bridgeLength: 400,     // Length of bridges
+  centralAreaSize: 600,  // Size of central boss area
 };
+
+/**
+ * Zone center positions (relative to map dimensions)
+ * Each zone is in one of the 4 quadrants
+ */
+export const zonePositions: Record<PlayerZone, { xRatio: number; yRatio: number }> = {
+  topLeft: { xRatio: 0.25, yRatio: 0.3 },
+  topRight: { xRatio: 0.75, yRatio: 0.3 },
+  bottomRight: { xRatio: 0.75, yRatio: 0.7 },
+  bottomLeft: { xRatio: 0.25, yRatio: 0.7 },
+};
+
+/**
+ * Get zone center position in pixels
+ */
+export function getZoneCenter(zone: PlayerZone, mapWidth: number, mapHeight: number) {
+  const pos = zonePositions[zone];
+  return {
+    x: mapWidth * pos.xRatio,
+    y: mapHeight * pos.yRatio,
+  };
+}
+
+/**
+ * Get map center (for central boss area)
+ */
+export function getMapCenter(mapWidth: number, mapHeight: number) {
+  return {
+    x: mapWidth / 2,
+    y: mapHeight / 2,
+  };
+}
 
 /**
  * Rarity weights for gacha/rolling

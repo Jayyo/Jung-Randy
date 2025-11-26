@@ -178,7 +178,9 @@ export interface MobInstance {
   mob: Mob;
   currentStats: Stats;
   position: { x: number; y: number };
-  pathProgress: number;  // 0-1, progress along path
+  pathProgress: number;  // 0-1, progress along loop path
+  loopCount: number;     // How many loops completed
+  zone: PlayerZone | 'center';  // Which zone this mob belongs to
   activeDebuffs: ActiveBuff[];
 }
 
@@ -193,6 +195,17 @@ export interface ActiveBuff {
 
 // ===== GAME STATE =====
 
+/** Player zone position (4 quadrants) */
+export type PlayerZone = 'topLeft' | 'topRight' | 'bottomRight' | 'bottomLeft';
+
+/** Player statue (base) that must be defended */
+export interface Statue {
+  zoneId: PlayerZone;
+  hp: number;
+  maxHp: number;
+  position: { x: number; y: number };
+}
+
 /** Player inventory */
 export interface PlayerInventory {
   characters: CharacterInstance[];
@@ -200,11 +213,21 @@ export interface PlayerInventory {
   freeRolls: number;
 }
 
+/** Individual player state (for 4-player support) */
+export interface PlayerState {
+  playerId: string;
+  zone: PlayerZone;
+  statue: Statue;
+  hero: CharacterInstance | null;  // Active hero controlled by player
+  inventory: PlayerInventory;
+  isAlive: boolean;
+  passiveGoldTimer: number;  // Timer for passive gold income
+}
+
 /** Current game state */
 export interface GameState {
   // Meta
   gameId: string;
-  playerId: string;
   isRunning: boolean;
   isPaused: boolean;
 
@@ -213,16 +236,18 @@ export interface GameState {
   totalWaves: number;
   waveInProgress: boolean;
 
-  // Player
-  playerLives: number;
-  inventory: PlayerInventory;
-  deployedCharacters: CharacterInstance[];
+  // Players (up to 4)
+  players: PlayerState[];
+  localPlayerId: string;  // Current player's ID (for local play)
 
-  // Enemies
+  // Enemies - now per zone
   activeMobs: MobInstance[];
 
-  // Economy
-  gold: number;
+  // Central boss
+  centralBoss: MobInstance | null;
+  bossActive: boolean;
+
+  // Economy (shared config)
   rollCost: number;
 
   // Timing
@@ -232,12 +257,33 @@ export interface GameState {
 
 /** Game configuration */
 export interface GameConfig {
+  // Economy
   startingGold: number;
-  startingLives: number;
   rollCost: number;
   freeRollsPerWave: number;
-  maxDeployedCharacters: number;
+  passiveGoldInterval: number;  // ms between passive gold ticks
+  passiveGoldAmount: number;    // Gold per tick
+
+  // Statue
+  statueMaxHp: number;
+  statueDamagePerLoop: number;  // Damage when mob completes loop
+
+  // Game
   totalWaves: number;
+  bossWaveInterval: number;  // Boss spawns every N waves
+
+  // Map dimensions (in pixels)
   mapWidth: number;
   mapHeight: number;
+
+  // Zone configuration - rectangular separated platforms
+  zoneSize: number;         // Size of each player zone (square)
+  pathWidth: number;        // Width of mob walking path
+  bridgeWidth: number;      // Width of bridges to center
+  bridgeLength: number;     // Length of bridges
+  centralAreaSize: number;  // Size of central boss area
+
+  // Legacy (for backward compatibility)
+  loopRadius?: number;       // Deprecated: use zoneSize instead
+  centralBossRadius?: number; // Deprecated: use centralAreaSize instead
 }

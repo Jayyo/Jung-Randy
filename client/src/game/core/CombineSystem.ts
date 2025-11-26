@@ -5,7 +5,7 @@ import {
   Party,
   Rarity,
 } from '@/types';
-import { allRecipes, getRecipeById } from '@/data/recipes';
+import { allRecipes } from '@/data/recipes';
 import { getCharacterById } from '@/data/characters';
 
 /**

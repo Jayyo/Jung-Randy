@@ -37,3 +37,9 @@ CLAUDE.md
 Agents.md
 .codex/
 codex.md
+
+# Large 3D asset source files (keep GLB only)
+*.fbx
+
+# Playwright MCP data
+.playwright-mcp/

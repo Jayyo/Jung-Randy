@@ -56,7 +56,25 @@ export class PreloadScene extends Phaser.Scene {
 
     // ===== LOAD ASSETS =====
 
-    // Placeholder sprites (will be replaced with real assets)
+    // 실제 스프라이트 시트 로드
+    this.load.spritesheet('mob_corruption_small', 'assets/sprites/mob_corruption_small.png', {
+      frameWidth: 256,
+      frameHeight: 256,
+    });
+    this.load.spritesheet('mob_corruption_small_back', 'assets/sprites/mob_corruption_small_back.png', {
+      frameWidth: 256,
+      frameHeight: 256,
+    });
+    this.load.spritesheet('mob_corruption_small_left', 'assets/sprites/mob_corruption_small_left.png', {
+      frameWidth: 256,
+      frameHeight: 256,
+    });
+    this.load.spritesheet('mob_corruption_small_right', 'assets/sprites/mob_corruption_small_right.png', {
+      frameWidth: 256,
+      frameHeight: 256,
+    });
+
+    // Placeholder sprites (나머지 자리는 추후 교체 예정)
     this.createPlaceholderSprites();
 
     // Load map/tileset (when available)
@@ -183,12 +201,8 @@ export class PreloadScene extends Phaser.Scene {
     leeGraphics.generateTexture('lee_presidential', 48, 48);
     leeGraphics.destroy();
 
-    // Mob placeholders
+    // Mob placeholders (실제 에셋 없는 항목만 유지)
     const mobPlaceholders = this.make.graphics({ x: 0, y: 0 });
-    mobPlaceholders.fillStyle(0xe74c3c, 1);
-    mobPlaceholders.fillCircle(12, 12, 12);
-    mobPlaceholders.generateTexture('mob_corruption_small', 24, 24);
-    mobPlaceholders.clear();
     mobPlaceholders.fillStyle(0xc0392b, 1);
     mobPlaceholders.fillCircle(16, 16, 16);
     mobPlaceholders.generateTexture('mob_scandal', 32, 32);
@@ -215,9 +229,28 @@ export class PreloadScene extends Phaser.Scene {
     mobPlaceholders.destroy();
   }
 
+  private createAnimations(): void {
+    const makeRun = (key: string, animKey: string) => {
+      if (this.textures.exists(key) && !this.anims.exists(animKey)) {
+        this.anims.create({
+          key: animKey,
+          frames: this.anims.generateFrameNumbers(key, { start: 0, end: 19 }),
+          frameRate: 12,
+          repeat: -1,
+        });
+      }
+    };
+
+    // 기본(정면) 러닝 + 방향별 러닝
+    makeRun('mob_corruption_small', 'mob_corruption_small_run');
+    makeRun('mob_corruption_small_back', 'mob_corruption_small_run_back');
+    makeRun('mob_corruption_small_left', 'mob_corruption_small_run_left');
+    makeRun('mob_corruption_small_right', 'mob_corruption_small_run_right');
+  }
+
   create(): void {
-    // Create animations (when using sprite sheets)
-    // this.createAnimations();
+    // 실제 스프라이트 애니메이션 등록
+    this.createAnimations();
 
     // Go to main menu or directly to game
     this.scene.start('GameScene');
