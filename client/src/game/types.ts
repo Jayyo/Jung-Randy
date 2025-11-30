@@ -1,7 +1,7 @@
 // ===== GAME TYPES =====
 import * as THREE from 'three';
 import { CharacterStats } from './gameData';
-import { Politician, PoliticianTier, Party } from './data/politicians';
+import { PoliticianTier, Party } from './data/politicians';
 
 // Character data structure
 export interface CharacterData {

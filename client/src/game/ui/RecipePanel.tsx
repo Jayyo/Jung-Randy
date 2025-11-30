@@ -5,8 +5,6 @@ import { useState, useEffect } from 'react';
 import {
   ALL_POLITICIANS,
   ALL_RECIPES,
-  LV2_TO_LV3_RECIPES,
-  LV1_TO_LV2_RECIPES,
   TIER_COLORS,
   TIER_BG_COLORS,
   TIER_NAMES,
@@ -17,7 +15,12 @@ import {
   type PoliticianTier,
   type PoliticianRecipe,
 } from '../data/politicians';
+
 import { CharacterPreview, preloadCharacterPreviews } from './CharacterPreview';
+
+// Derived recipe lists (filtering from ALL_RECIPES)
+const LV1_TO_LV2_RECIPES = ALL_RECIPES.filter(r => r.result === 'random_lv2');
+const LV2_TO_LV3_RECIPES = ALL_RECIPES.filter(r => r.result !== 'random_lv2');
 
 interface RecipePanelProps {
   isOpen: boolean;
@@ -434,13 +437,6 @@ export function RecipePanel({ isOpen, onClose }: RecipePanelProps) {
     if (selectedTier === 'lv3') return LV2_TO_LV3_RECIPES;
     return [];
   })();
-
-  const tierDisplayNames: Record<PoliticianTier | 'all', string> = {
-    all: '전체',
-    lv1: 'Lv1 → Lv2',
-    lv2: 'Lv1 → Lv2',
-    lv3: 'Lv2 → Lv3',
-  };
 
   return (
     <>

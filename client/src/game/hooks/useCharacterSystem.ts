@@ -4,9 +4,7 @@ import * as THREE from 'three';
 import { CharacterData, SelectionTarget, MoveIndicatorData } from '../types';
 import { getCharacterStats, CharacterStats } from '../gameData';
 import {
-  Politician,
   getPoliticianById,
-  LV1_POLITICIANS,
   CombinationOption,
   executeCombination,
 } from '../data/politicians';
@@ -112,21 +110,27 @@ export function useCharacterSystem(): UseCharacterSystemReturn {
 
     // Convert politician stats to CharacterStats
     const stats: CharacterStats = {
+      id: `politician_${politician.id}`,
       name: politician.name,
+      type: 1,
       maxHp: politician.hp,
       attack: politician.attack,
       defense: politician.defense,
       attackSpeed: 1.0, // Base attack speed
       attackRange: 1.5, // Base attack range
+      moveSpeed: 3.0,
       skills: {
         passive: politician.hasSkill && politician.skillName ? {
+          id: `skill_${politician.id}`,
           name: politician.skillName,
           description: politician.skillDescription || '',
           triggerChance: 0.2,
           damageMultiplier: 1.5,
-        } : undefined,
-        active: undefined,
+          animationPath: '',
+        } : null,
+        active: null,
       },
+      profileImage: '',
     };
 
     // Spawn position with slight random offset to avoid stacking
@@ -159,7 +163,7 @@ export function useCharacterSystem(): UseCharacterSystemReturn {
   }, []);
 
   // Execute combination: remove material characters and spawn result
-  const executeCombine = useCallback((option: CombinationOption, materialCharIds: string[]) => {
+  const executeCombine = useCallback((_option: CombinationOption, materialCharIds: string[]) => {
     // Get material politician IDs from characters
     const materialPoliticianIds: string[] = [];
     const charsToRemove = new Set(materialCharIds);
@@ -187,21 +191,27 @@ export function useCharacterSystem(): UseCharacterSystemReturn {
 
     // Spawn the result politician
     const stats: CharacterStats = {
+      id: `politician_${resultPolitician.id}`,
       name: resultPolitician.name,
+      type: 1,
       maxHp: resultPolitician.hp,
       attack: resultPolitician.attack,
       defense: resultPolitician.defense,
       attackSpeed: 1.0,
       attackRange: 1.5,
+      moveSpeed: 3.0,
       skills: {
         passive: resultPolitician.hasSkill && resultPolitician.skillName ? {
+          id: `skill_${resultPolitician.id}`,
           name: resultPolitician.skillName,
           description: resultPolitician.skillDescription || '',
           triggerChance: 0.2,
           damageMultiplier: 1.5,
-        } : undefined,
-        active: undefined,
+          animationPath: '',
+        } : null,
+        active: null,
       },
+      profileImage: '',
     };
 
     // Spawn at center with small offset

@@ -1,0 +1,97 @@
+{
+  "lv1": [
+    {
+      "id": "L1_KH",
+      "name": "국힘 지지자",
+      "tier": "lv1",
+      "party": "kuk",
+      "attack": 5,
+      "defense": 3,
+      "hp": 30,
+      "description": "국민의힘을 지지하는 기초 지지층.",
+      "modelPath": "/assets/characters/stylized_base.glb",
+      "color": "#E61E2B",
+      "hasSkill": false
+    },
+    {
+      "id": "L1_DM",
+      "name": "민주 지지자",
+      "tier": "lv1",
+      "party": "min",
+      "attack": 5,
+      "defense": 3,
+      "hp": 30,
+      "description": "더불어민주당을 지지하는 기초 지지층.",
+      "modelPath": "/assets/characters/stylized_base.glb",
+      "color": "#004EA2",
+      "hasSkill": false
+    }
+  ],
+  "lv2": {
+    "min": [
+      { "id": "kwon_chilseung", "name": "권칠승", "terms": 3, "committee": "행안위", "role": "buffer", "attack": 15, "defense": 12, "hp": 80, "description": "3선 의원. 행정안전위원회 소속.", "color": "#1E40AF", "hasSkill": false },
+      { "id": "kim_gyoheung", "name": "김교흥", "terms": 3, "committee": "문체위", "role": "buffer", "attack": 14, "defense": 13, "hp": 85, "description": "3선 의원. 문화체육관광위원회 소속.", "color": "#1E3A8A", "hasSkill": false },
+      { "id": "kim_byungki", "name": "김병기", "terms": 3, "committee": "정보위·국방위", "role": "line_dps", "attack": 18, "defense": 10, "hp": 75, "description": "3선 의원. 정보위원회·국방위원회 소속.", "color": "#1D4ED8", "hasSkill": false },
+      { "id": "kim_sunghwan", "name": "김성환", "terms": 3, "committee": "산자중기위", "role": "economy", "attack": 13, "defense": 14, "hp": 90, "description": "3선 의원. 산업통상자원중소벤처기업위원회 소속.", "color": "#2563EB", "hasSkill": false },
+      { "id": "kim_youngjin", "name": "김영진", "terms": 3, "committee": "기재위·정보위", "role": "economy", "attack": 14, "defense": 13, "hp": 85, "description": "3선 의원. 기획재정위원회·정보위원회 소속.", "color": "#3B82F6", "hasSkill": false },
+      { "id": "kim_youngho", "name": "김영호", "terms": 3, "committee": "교육위", "role": "buffer", "attack": 12, "defense": 15, "hp": 95, "description": "3선 의원. 교육위원회 소속.", "color": "#60A5FA", "hasSkill": false },
+      { "id": "kim_yoondeok", "name": "김윤덕", "terms": 2, "committee": "농해수위", "role": "hold", "attack": 11, "defense": 16, "hp": 100, "description": "2선 의원. 농림축산식품해양수산위원회 소속.", "color": "#93C5FD", "hasSkill": false },
+      { "id": "kim_jungho", "name": "김정호", "terms": 3, "committee": "법사위", "role": "debuffer", "attack": 16, "defense": 11, "hp": 78, "description": "3선 의원. 법제사법위원회 소속.", "color": "#1E40AF", "hasSkill": false },
+      { "id": "maeng_sunggyu", "name": "맹성규", "terms": 2, "committee": "국토위", "role": "line_dps", "attack": 17, "defense": 10, "hp": 72, "description": "2선 의원. 국토교통위원회 소속.", "color": "#1D4ED8", "hasSkill": false },
+      { "id": "park_jumin", "name": "박주민", "terms": 3, "committee": "법사위", "role": "debuffer", "attack": 16, "defense": 12, "hp": 80, "description": "3선 의원. 법제사법위원회 소속.", "color": "#2563EB", "hasSkill": false },
+      { "id": "park_jung", "name": "박정", "terms": 3, "committee": "환노위", "role": "buffer", "attack": 13, "defense": 14, "hp": 88, "description": "3선 의원. 환경노동위원회 소속.", "color": "#3B82F6", "hasSkill": false },
+      { "id": "park_chandae", "name": "박찬대", "terms": 2, "committee": "국회부의장", "role": "buffer", "attack": 14, "defense": 14, "hp": 88, "description": "2선 의원. 국회 부의장.", "color": "#60A5FA", "hasSkill": false },
+      { "id": "baek_hyeryun", "name": "백혜련", "terms": 3, "committee": "법사위", "role": "debuffer", "attack": 15, "defense": 12, "hp": 82, "description": "3선 의원. 법제사법위원회 소속.", "color": "#93C5FD", "hasSkill": false },
+      { "id": "seo_samseok", "name": "서삼석", "terms": 3, "committee": "농해수위", "role": "economy", "attack": 12, "defense": 15, "hp": 92, "description": "3선 의원. 농림축산식품해양수산위원회 소속.", "color": "#1E3A8A", "hasSkill": false }
+    ],
+    "kuk": [
+      { "id": "kim_seokki", "name": "김석기", "terms": 3, "committee": "국방위", "role": "line_dps", "attack": 17, "defense": 11, "hp": 78, "description": "3선 의원. 국방위원회 소속.", "color": "#DC2626", "hasSkill": false },
+      { "id": "kim_sungwon", "name": "김성원", "terms": 3, "committee": "기재위", "role": "economy", "attack": 14, "defense": 13, "hp": 85, "description": "3선 의원. 기획재정위원회 소속.", "color": "#B91C1C", "hasSkill": false },
+      { "id": "kim_heejung", "name": "김희정", "terms": 2, "committee": "여가위", "role": "buffer", "attack": 13, "defense": 14, "hp": 88, "description": "2선 의원. 여성가족위원회 소속.", "color": "#F87171", "hasSkill": false },
+      { "id": "kim_jungjae", "name": "김정재", "terms": 3, "committee": "산자중기위", "role": "economy", "attack": 15, "defense": 12, "hp": 82, "description": "3선 의원. 산업통상자원중소벤처기업위원회 소속.", "color": "#EF4444", "hasSkill": false },
+      { "id": "song_seokjun", "name": "송석준", "terms": 3, "committee": "국토위", "role": "line_dps", "attack": 16, "defense": 11, "hp": 76, "description": "3선 의원. 국토교통위원회 소속.", "color": "#DC2626", "hasSkill": false },
+      { "id": "shin_sungbeom", "name": "신성범", "terms": 2, "committee": "국방위", "role": "line_dps", "attack": 18, "defense": 9, "hp": 70, "description": "2선 의원. 국방위원회 소속.", "color": "#B91C1C", "hasSkill": false },
+      { "id": "sung_iljong", "name": "성일종", "terms": 3, "committee": "기재위", "role": "economy", "attack": 14, "defense": 14, "hp": 86, "description": "3선 의원. 기획재정위원회 소속.", "color": "#F87171", "hasSkill": false },
+      { "id": "yoon_hanhong", "name": "윤한홍", "terms": 3, "committee": "산자중기위", "role": "economy", "attack": 15, "defense": 13, "hp": 84, "description": "3선 의원. 산업통상자원중소벤처기업위원회 소속.", "color": "#EF4444", "hasSkill": false },
+      { "id": "im_ija", "name": "임이자", "terms": 3, "committee": "환노위", "role": "buffer", "attack": 12, "defense": 15, "hp": 92, "description": "3선 의원. 환경노동위원회 소속.", "color": "#DC2626", "hasSkill": false },
+      { "id": "jang_donghyuk", "name": "장동혁", "terms": 2, "committee": "법사위", "role": "debuffer", "attack": 16, "defense": 11, "hp": 78, "description": "2선 의원. 법제사법위원회 소속.", "color": "#B91C1C", "hasSkill": false },
+      { "id": "jung_chunsook", "name": "정춘숙", "terms": 3, "committee": "복지위", "role": "buffer", "attack": 11, "defense": 16, "hp": 98, "description": "3선 의원. 보건복지위원회 소속.", "color": "#F87171", "hasSkill": false },
+      { "id": "choi_hyungjae", "name": "최형재", "terms": 2, "committee": "교육위", "role": "buffer", "attack": 13, "defense": 14, "hp": 88, "description": "2선 의원. 교육위원회 소속.", "color": "#EF4444", "hasSkill": false },
+      { "id": "lee_manhee", "name": "이만희", "terms": 3, "committee": "행안위", "role": "hold", "attack": 10, "defense": 18, "hp": 105, "description": "3선 의원. 행정안전위원회 소속.", "color": "#DC2626", "hasSkill": false }
+    ]
+  },
+  "lv3": {
+    "min": [
+      { "id": "kim_taenyeon", "name": "김태년", "terms": 5, "committee": "전 원내대표", "role": "buffer", "attack": 25, "defense": 22, "hp": 150, "description": "5선 의원. 전 원내대표.", "color": "#1E40AF", "hasSkill": true, "skillName": "원내교섭력", "skillDescription": "아군의 공격력 10% 증가" },
+      { "id": "park_jiwon", "name": "박지원", "terms": 6, "committee": "정보위원장", "role": "debuffer", "attack": 28, "defense": 20, "hp": 145, "description": "6선 의원. 정보위원장 역임.", "color": "#1E3A8A", "hasSkill": true, "skillName": "정보망", "skillDescription": "적의 방어력 15% 감소" },
+      { "id": "park_honggeun", "name": "박홍근", "terms": 3, "committee": "전 원내대표", "role": "buffer", "attack": 24, "defense": 23, "hp": 155, "description": "3선 의원. 전 원내대표.", "color": "#1D4ED8", "hasSkill": true, "skillName": "결집력", "skillDescription": "아군의 HP 8% 증가" },
+      { "id": "seo_younggyo", "name": "서영교", "terms": 4, "committee": "행안위원장", "role": "hold", "attack": 20, "defense": 28, "hp": 180, "description": "4선 의원. 행안위원장 역임.", "color": "#2563EB", "hasSkill": true, "skillName": "행정력", "skillDescription": "자신의 방어력 20% 증가" },
+      { "id": "ahn_gyubaek", "name": "안규백", "terms": 4, "committee": "국방위원장", "role": "line_dps", "attack": 30, "defense": 18, "hp": 140, "description": "4선 의원. 국방위원장 역임.", "color": "#3B82F6", "hasSkill": true, "skillName": "선공권", "skillDescription": "첫 공격 데미지 50% 증가" },
+      { "id": "yoon_hojung", "name": "윤호중", "terms": 4, "committee": "전 원내대표", "role": "buffer", "attack": 26, "defense": 21, "hp": 148, "description": "4선 의원. 전 원내대표.", "color": "#60A5FA", "hasSkill": true, "skillName": "단합력", "skillDescription": "아군 3명의 공격력 7% 증가" },
+      { "id": "lee_inyoung", "name": "이인영", "terms": 4, "committee": "전 통일부장관", "role": "debuffer", "attack": 27, "defense": 20, "hp": 145, "description": "4선 의원. 전 통일부장관.", "color": "#93C5FD", "hasSkill": true, "skillName": "외교력", "skillDescription": "적의 공격력 12% 감소" },
+      { "id": "jung_dongyoung", "name": "정동영", "terms": 4, "committee": "전 통일부장관", "role": "debuffer", "attack": 26, "defense": 21, "hp": 148, "description": "4선 의원. 전 통일부장관.", "color": "#1E40AF", "hasSkill": true, "skillName": "협상력", "skillDescription": "적 2명의 방어력 10% 감소" },
+      { "id": "jung_sungho", "name": "정성호", "terms": 4, "committee": "예결위원장", "role": "economy", "attack": 22, "defense": 25, "hp": 165, "description": "4선 의원. 예결위원장 역임.", "color": "#1E3A8A", "hasSkill": true, "skillName": "예산배정", "skillDescription": "골드 획득량 15% 증가" },
+      { "id": "jung_chungrae", "name": "정청래", "terms": 4, "committee": "과방위원장", "role": "line_dps", "attack": 29, "defense": 18, "hp": 138, "description": "4선 의원. 과방위원장.", "color": "#1D4ED8", "hasSkill": true, "skillName": "논쟁", "skillDescription": "공격 시 10% 확률로 2배 데미지" },
+      { "id": "cho_jungsik", "name": "조정식", "terms": 4, "committee": "기재위원장", "role": "economy", "attack": 23, "defense": 24, "hp": 160, "description": "4선 의원. 기재위원장 역임.", "color": "#2563EB", "hasSkill": true, "skillName": "경제통", "skillDescription": "아군 경제 유닛 공격력 12% 증가" },
+      { "id": "chu_miae", "name": "추미애", "terms": 5, "committee": "전 법무부장관", "role": "debuffer", "attack": 28, "defense": 19, "hp": 142, "description": "5선 의원. 전 법무부장관.", "color": "#3B82F6", "hasSkill": true, "skillName": "검찰개혁", "skillDescription": "적 보스의 방어력 20% 감소" }
+    ],
+    "kuk": [
+      { "id": "kwon_sungdong", "name": "권성동", "terms": 4, "committee": "전 원내대표", "role": "buffer", "attack": 25, "defense": 22, "hp": 150, "description": "4선 의원. 전 원내대표.", "color": "#DC2626", "hasSkill": true, "skillName": "결속력", "skillDescription": "아군의 방어력 10% 증가" },
+      { "id": "kwon_youngsae", "name": "권영세", "terms": 4, "committee": "전 통일부장관", "role": "debuffer", "attack": 27, "defense": 20, "hp": 145, "description": "4선 의원. 전 통일부장관.", "color": "#B91C1C", "hasSkill": true, "skillName": "대북정보", "skillDescription": "적의 공격력 12% 감소" },
+      { "id": "kim_kihyeon", "name": "김기현", "terms": 4, "committee": "전 당대표", "role": "buffer", "attack": 26, "defense": 21, "hp": 148, "description": "4선 의원. 전 당대표.", "color": "#EF4444", "hasSkill": true, "skillName": "당무력", "skillDescription": "아군 2명의 공격력 8% 증가" },
+      { "id": "na_kyungwon", "name": "나경원", "terms": 4, "committee": "전 원내대표", "role": "buffer", "attack": 24, "defense": 23, "hp": 155, "description": "4선 의원. 전 원내대표.", "color": "#F87171", "hasSkill": true, "skillName": "언론플레이", "skillDescription": "아군의 HP 10% 증가" },
+      { "id": "yoon_sanghyeon", "name": "윤상현", "terms": 4, "committee": "외통위원장", "role": "debuffer", "attack": 28, "defense": 19, "hp": 142, "description": "4선 의원. 외통위원장 역임.", "color": "#DC2626", "hasSkill": true, "skillName": "외교전", "skillDescription": "적 2명의 방어력 10% 감소" },
+      { "id": "cho_kyungtae", "name": "조경태", "terms": 5, "committee": "국회부의장", "role": "hold", "attack": 20, "defense": 28, "hp": 180, "description": "5선 의원. 국회 부의장.", "color": "#B91C1C", "hasSkill": true, "skillName": "의사진행", "skillDescription": "자신의 방어력 25% 증가" },
+      { "id": "cho_baesuk", "name": "조배숙", "terms": 4, "committee": "농해수위원장", "role": "economy", "attack": 22, "defense": 25, "hp": 165, "description": "4선 의원. 농해수위원장 역임.", "color": "#EF4444", "hasSkill": true, "skillName": "농정력", "skillDescription": "골드 획득량 12% 증가" },
+      { "id": "ju_hoyoung", "name": "주호영", "terms": 4, "committee": "전 원내대표", "role": "buffer", "attack": 25, "defense": 22, "hp": 152, "description": "4선 의원. 전 원내대표.", "color": "#F87171", "hasSkill": true, "skillName": "협치력", "skillDescription": "아군 전체의 공격속도 5% 증가" }
+    ],
+    "minor": [
+      { "id": "hwang_unha", "name": "황운하", "terms": 2, "committee": "법사위", "partyDetail": "조국혁신당", "role": "debuffer", "attack": 30, "defense": 17, "hp": 135, "description": "2선 의원. 조국혁신당 소속.", "color": "#10B981", "hasSkill": true, "skillName": "수사력", "skillDescription": "적 보스의 공격력 15% 감소" },
+      { "id": "yoon_jongo", "name": "윤종오", "terms": 2, "committee": "환노위", "partyDetail": "진보당", "role": "line_dps", "attack": 32, "defense": 15, "hp": 128, "description": "2선 의원. 진보당 소속.", "color": "#EC4899", "hasSkill": true, "skillName": "투쟁", "skillDescription": "공격 시 15% 확률로 2배 데미지" },
+      { "id": "yong_hyein", "name": "용혜인", "terms": 1, "committee": "기재위", "partyDetail": "기본소득당", "role": "economy", "attack": 20, "defense": 28, "hp": 175, "description": "초선 의원. 기본소득당 소속.", "color": "#F59E0B", "hasSkill": true, "skillName": "기본소득", "skillDescription": "아군 전체에 지속 HP 회복" },
+      { "id": "lee_junseok", "name": "이준석", "terms": 1, "committee": "과방위", "partyDetail": "개혁신당", "role": "line_dps", "attack": 33, "defense": 14, "hp": 125, "description": "초선 의원. 개혁신당 대표.", "color": "#8B5CF6", "hasSkill": true, "skillName": "SNS공세", "skillDescription": "광역 공격, 적 3명에게 50% 데미지" },
+      { "id": "han_changmin", "name": "한창민", "terms": 2, "committee": "교육위", "partyDetail": "무소속", "role": "buffer", "attack": 24, "defense": 23, "hp": 155, "description": "2선 의원. 무소속.", "color": "#6B7280", "hasSkill": true, "skillName": "중립외교", "skillDescription": "아군·적군 모두의 방어력 5% 감소" },
+      { "id": "woo_wonsik", "name": "우원식", "terms": 5, "committee": "국회의장", "partyDetail": "더불어민주당", "role": "hold", "attack": 18, "defense": 32, "hp": 200, "description": "5선 의원. 국회의장.", "color": "#1D4ED8", "hasSkill": true, "skillName": "의장권한", "skillDescription": "자신의 HP 30% 증가, 방어력 20% 증가" }
+    ]
+  }
+}
