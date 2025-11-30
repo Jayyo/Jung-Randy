@@ -1,7 +1,6 @@
 import './WarcraftChatBox.css';
 import { ChatBoxProps } from './types';
 import { useWarcraftChat } from './useWarcraftChat';
-import { formatTime } from './utils';
 import { useRef, useEffect, useState } from 'react';
 
 const MESSAGE_FADE_DELAY = 5000; // 5초 후 페이드아웃
@@ -13,7 +12,6 @@ export default function WarcraftChatBox({ onSendMessage }: ChatBoxProps) {
     inputValue,
     isActive,
     inputRef,
-    handleSend,
     handleKeyDown,
     handleInputChange,
     closeChat,

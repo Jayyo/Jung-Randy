@@ -3,7 +3,6 @@ import {
   useRef,
   useEffect,
   useCallback,
-  type KeyboardEvent,
   type ChangeEvent,
 } from 'react';
 import { Message } from './types';
@@ -61,7 +60,7 @@ export function useChat({ onSendMessage }: UseChatOptions = {}) {
 
   // 전역 키 리스너: Enter로 채팅 활성화, ESC로 채팅 비활성화
   useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+    const handleGlobalKeyDown = (e: globalThis.KeyboardEvent) => {
       // ESC 키로 채팅창 닫기
       if (e.key === 'Escape' && isActive) {
         e.preventDefault();
@@ -102,7 +101,7 @@ export function useChat({ onSendMessage }: UseChatOptions = {}) {
       }
     };
 
-    const handleGlobalKeyUp = (e: KeyboardEvent) => {
+    const handleGlobalKeyUp = (e: globalThis.KeyboardEvent) => {
       if (e.key === 'Enter') {
         enterHeldRef.current = false;
       }
@@ -164,7 +163,7 @@ export function useChat({ onSendMessage }: UseChatOptions = {}) {
     }
   }, [inputValue, onSendMessage]);
 
-  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       enterHeldRef.current = true;

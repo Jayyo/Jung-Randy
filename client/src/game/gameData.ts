@@ -185,7 +185,7 @@ export function getMonsterStatsForWave(wave: number): {
   defense: number;
   sizeMultiplier: number;
 } {
-  const { baseHp, baseDamage, baseDefense } = MONSTER_BASE_STATS;
+  const { baseHp, baseDefense } = MONSTER_BASE_STATS;
   const scaling = ROUND_SCALING_CONFIG;
   const isBoss = isBossWave(wave);
   

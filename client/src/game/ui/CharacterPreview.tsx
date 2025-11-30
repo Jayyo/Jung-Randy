@@ -2,7 +2,7 @@
 // Renders a 3D character model to a 2D canvas for use in UI
 // Uses offscreen rendering to avoid WebGL context limits
 
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 

@@ -15,7 +15,6 @@ export default function ChatBox({ onSendMessage }: ChatBoxProps) {
     handleSend,
     handleKeyDown,
     handleInputChange,
-    activateChat,
     closeChat,
   } = useChat({ onSendMessage });
 

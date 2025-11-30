@@ -282,7 +282,7 @@ const gridRow = {
   maxWidth: '640px',
 } as const;
 
-const skillBox = (bg: string, border: string, color: string, cursor: string, dim?: boolean) => ({
+const skillBox = (bg: string, border: string, _color: string, cursor: string, dim?: boolean) => ({
   width: '50px',
   height: '50px',
   background: bg,

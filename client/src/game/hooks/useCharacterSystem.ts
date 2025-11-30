@@ -2,7 +2,6 @@
 import { useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { CharacterData, SelectionTarget, MoveIndicatorData } from '../types';
-import { LANE_OFFSET } from '../constants';
 import { getCharacterStats } from '../gameData';
 
 interface UseCharacterSystemReturn {

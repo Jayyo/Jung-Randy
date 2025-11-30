@@ -9,7 +9,6 @@ import {
   RARITY_BG_COLORS,
   getCharactersByRarity,
   type DummyCharacter,
-  type Rarity,
 } from '../data/dummyCharacters';
 import { CharacterPreview } from './CharacterPreview';
 
@@ -86,7 +85,7 @@ function GachaContent() {
   const [lastPull, setLastPull] = useState<DummyCharacter | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  const handlePull = (cost: number, rarity: 'common' | 'rare') => {
+  const handlePull = (_cost: number, rarity: 'common' | 'rare') => {
     setIsAnimating(true);
     setLastPull(null);
 
