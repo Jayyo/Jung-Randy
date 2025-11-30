@@ -9,8 +9,15 @@ import {
 import { LaneFrame } from './LaneFrame';
 import { ElevatedBridge } from './ElevatedBridge';
 import { BossPlatform } from './BossPlatform';
+import { ThirdPlatform } from './ThirdPlatform';
+import { BuildingType } from '../buildings';
 
-export function Platform() {
+interface PlatformProps {
+  selectedBuilding: BuildingType | null;
+  onBuildingSelect: (type: BuildingType) => void;
+}
+
+export function Platform({ selectedBuilding, onBuildingSelect }: PlatformProps) {
   return (
     <group>
       {/* Base ground - green grass plane */}
@@ -27,6 +34,13 @@ export function Platform() {
 
       {/* Boss platform - positioned to the right */}
       <BossPlatform position={[PLATFORM_SIZE / 2 + BOSS_PLATFORM_GAP + BOSS_PLATFORM_SIZE / 2, 0, 0]} />
+
+      {/* Third platform - isolated below main platform */}
+      <ThirdPlatform
+        position={[0, 0, PLATFORM_SIZE / 2 + 2.5]}
+        selectedBuilding={selectedBuilding}
+        onBuildingSelect={onBuildingSelect}
+      />
     </group>
   );
 }

@@ -23,6 +23,7 @@ interface SelectionHandlerProps {
   onStopCommand: () => void;
   onSaveGroup: (groupNumber: number) => void;
   onSelectGroup: (groupNumber: number) => void;
+  onGroundClick?: () => void;
 }
 
 export function SelectionHandler({
@@ -34,7 +35,8 @@ export function SelectionHandler({
   onMoveCommand,
   onStopCommand,
   onSaveGroup,
-  onSelectGroup
+  onSelectGroup,
+  onGroundClick
 }: SelectionHandlerProps) {
   const { camera, raycaster, gl } = useThree();
   const isDraggingRef = useRef(false);
@@ -207,6 +209,7 @@ export function SelectionHandler({
 
           if (!clickedChar && !e.shiftKey) {
             setSelectedCharacterIds(new Set());
+            onGroundClick?.();
           }
         }
       }
@@ -261,7 +264,7 @@ export function SelectionHandler({
       window.removeEventListener('mouseup', handleMouseUp);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [selectedCharacterIds, setSelectedCharacterIds, characters, camera, raycaster, gl, selectionBox, setSelectionBox, onMoveCommand, onStopCommand, onSaveGroup, onSelectGroup]);
+    }, [selectedCharacterIds, setSelectedCharacterIds, characters, camera, raycaster, gl, selectionBox, setSelectionBox, onMoveCommand, onStopCommand, onSaveGroup, onSelectGroup, onGroundClick]);
 
   return null;
 }

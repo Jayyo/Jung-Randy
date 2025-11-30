@@ -12,7 +12,7 @@ export function RTSCameraController() {
   // Zoom control
   const targetDistance = useRef(15); // Distance from target
   const minDistance = 8;
-  const maxDistance = 30;
+  const maxDistance = 50;
 
   // Angle control (Ctrl+wheel)
   const targetAngle = useRef(50); // Angle in degrees (0=horizontal, 90=top-down)
@@ -61,9 +61,9 @@ export function RTSCameraController() {
       e.preventDefault();
 
       if (e.ctrlKey) {
-        // Ctrl+Wheel: Adjust angle
+        // Ctrl+Wheel: Adjust angle (reversed direction)
         const angleSpeed = 5;
-        const delta = e.deltaY > 0 ? -angleSpeed : angleSpeed;
+        const delta = e.deltaY > 0 ? angleSpeed : -angleSpeed;
         targetAngle.current = Math.max(minAngle, Math.min(maxAngle, targetAngle.current + delta));
       } else {
         // Normal wheel: Zoom
