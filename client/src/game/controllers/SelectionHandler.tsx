@@ -41,6 +41,7 @@ export function SelectionHandler({
   const { camera, raycaster, gl } = useThree();
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
+  const clickStartedOnCanvasRef = useRef(false);
 
   useEffect(() => {
     const canvas = gl.domElement;
@@ -131,6 +132,7 @@ export function SelectionHandler({
     // Left-click drag: Selection box
     const handleMouseDown = (e: MouseEvent) => {
       if (e.button !== 0) return; // Only left click
+      clickStartedOnCanvasRef.current = true;
 
       dragStartRef.current = { x: e.clientX, y: e.clientY };
       isDraggingRef.current = false;
@@ -154,6 +156,7 @@ export function SelectionHandler({
 
     const handleMouseUp = (e: MouseEvent) => {
       if (e.button !== 0) return;
+      if (!clickStartedOnCanvasRef.current) return;
 
       if (isDraggingRef.current && selectionBox) {
         // Select characters within the box
@@ -216,6 +219,7 @@ export function SelectionHandler({
 
       dragStartRef.current = null;
       isDraggingRef.current = false;
+      clickStartedOnCanvasRef.current = false;
       setSelectionBox(null);
     };
 

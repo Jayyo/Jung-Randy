@@ -250,16 +250,20 @@ export interface WaveConfig {
   waveDelay: number; // ms before next wave starts after current wave ends
 }
 
+export const WAVE_SPAWN_DURATION_MS = 90_000; // Spawn window per wave (1m 30s)
+export const WAVE_TOTAL_DURATION_MS = 120_000; // Full wave length (2 minutes)
+export const MAX_ACTIVE_MONSTERS = 200; // Lose if more than this are alive
+
 export const WAVE_CONFIG: WaveConfig = {
   totalWaves: 50, // 50 rounds for extended gameplay
-  baseMonstersPerWave: 8, // Starting with 8 monsters (slightly lower for 50 rounds)
-  monstersPerWaveScaling: 'linear', // Linear increase by default
-  monstersPerWaveLinearIncrease: 1.5, // +1.5 monsters per wave (rounded down, so effectively +1 or +2)
-  monstersPerWaveExponentialBase: 1.05, // 5% increase per wave (if using exponential)
-  spawnInterval: 1500, // spawn a monster every 1.5 seconds
+  baseMonstersPerWave: 30, // 30 monsters per wave
+  monstersPerWaveScaling: 'fixed', // Keep the count stable per wave
+  monstersPerWaveLinearIncrease: 0,
+  monstersPerWaveExponentialBase: 1.0,
+  spawnInterval: 3000, // Spread 30 spawns across 90 seconds
   spawnIntervalScaling: 'fixed', // Keep spawn interval constant
-  spawnIntervalDecreasePerWave: 30, // Decrease by 30ms per wave (if using decreasing)
-  waveDelay: 3000, // 3 second delay between waves
+  spawnIntervalDecreasePerWave: 0,
+  waveDelay: 30_000, // Rest window after spawns (not used directly, kept for reference)
 };
 
 /**

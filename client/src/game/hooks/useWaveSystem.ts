@@ -3,7 +3,17 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import * as THREE from 'three';
 import { MonsterData, GameState, SelectionTarget } from '../types';
 import { LANE_OFFSET } from '../constants';
-import { getMonsterStatsForWave, WAVE_CONFIG, getMonstersPerWave, getSpawnIntervalForWave, isBossWave } from '../gameData';
+import {
+  getMonsterStatsForWave,
+  WAVE_CONFIG,
+  getMonstersPerWave,
+  getSpawnIntervalForWave,
+  isBossWave,
+  WAVE_SPAWN_DURATION_MS,
+  WAVE_TOTAL_DURATION_MS,
+  MAX_ACTIVE_MONSTERS,
+} from '../gameData';
+import { startWaveTickers, scheduleWaveEnd } from '../controllers/waveController';
 
 interface UseWaveSystemReturn {
   // Game state
@@ -13,6 +23,8 @@ interface UseWaveSystemReturn {
   monstersSpawnedInWave: number;
   monstersKilledInWave: number;
   totalMonstersKilled: number;
+  waveTimeLeftMs: number;
+  spawnTimeLeftMs: number;
 
   // Monsters
   monsters: MonsterData[];
@@ -32,6 +44,8 @@ export function useWaveSystem(selectionTarget: SelectionTarget, setSelectionTarg
   const [monstersSpawnedInWave, setMonstersSpawnedInWave] = useState(0);
   const [monstersKilledInWave, setMonstersKilledInWave] = useState(0);
   const [totalMonstersKilled, setTotalMonstersKilled] = useState(0);
+  const [waveTimeLeftMs, setWaveTimeLeftMs] = useState(WAVE_TOTAL_DURATION_MS);
+  const [spawnTimeLeftMs, setSpawnTimeLeftMs] = useState(WAVE_SPAWN_DURATION_MS);
 
   // Monster state
   const [monsters, setMonsters] = useState<MonsterData[]>([]);
@@ -40,6 +54,9 @@ export function useWaveSystem(selectionTarget: SelectionTarget, setSelectionTarg
   // Refs for tracking
   const monsterIdCounterRef = useRef(0);
   const spawnTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const waveEndCancelRef = useRef<(() => void) | null>(null);
+  const waveTickerRef = useRef<{ stop: () => void } | null>(null);
+  const waveStartTimeRef = useRef<number>(0);
   const waveTransitioningRef = useRef(false);
 
   // Create a monster with wave-based stats
@@ -64,15 +81,50 @@ export function useWaveSystem(selectionTarget: SelectionTarget, setSelectionTarg
   // Spawn monsters for current wave
   useEffect(() => {
     if (gameState !== 'playing') return;
+    if (currentWave < 1) return;
     if (currentWave > WAVE_CONFIG.totalWaves) return;
 
     // Reset counters for new wave
     setMonstersSpawnedInWave(0);
     setMonstersKilledInWave(0);
+    waveStartTimeRef.current = Date.now();
+    setWaveTimeLeftMs(WAVE_TOTAL_DURATION_MS);
+    setSpawnTimeLeftMs(WAVE_SPAWN_DURATION_MS);
+
+    // Start ticking timers for UI
+    if (waveTickerRef.current) {
+      waveTickerRef.current.stop();
+    }
+    waveTickerRef.current = startWaveTickers({
+      totalWaveMs: WAVE_TOTAL_DURATION_MS,
+      spawnMs: WAVE_SPAWN_DURATION_MS,
+      onTick: ({ waveTimeLeft, spawnTimeLeft }) => {
+        setWaveTimeLeftMs(waveTimeLeft);
+        setSpawnTimeLeftMs(spawnTimeLeft);
+      },
+    });
 
     // Check if this is a boss wave
     const isBoss = isBossWave(currentWave);
     let cancelled = false; // Declare cancelled outside if/else for cleanup
+
+    // Schedule next wave (fixed 2 minute window per wave)
+    if (waveEndCancelRef.current) {
+      waveEndCancelRef.current();
+    }
+    const startNextWave = () => {
+      if (waveTransitioningRef.current) return;
+      waveTransitioningRef.current = true;
+
+      if (currentWave >= WAVE_CONFIG.totalWaves) {
+        setGameState('gameover');
+        return;
+      }
+
+      setCurrentWave(prev => prev + 1);
+      setTimeout(() => { waveTransitioningRef.current = false; }, 0);
+    };
+    waveEndCancelRef.current = scheduleWaveEnd(WAVE_TOTAL_DURATION_MS, startNextWave);
 
     if (isBoss) {
       // Boss wave: spawn only 1 boss monster
@@ -89,6 +141,8 @@ export function useWaveSystem(selectionTarget: SelectionTarget, setSelectionTarg
 
       const spawnNext = () => {
         if (cancelled) return;
+        const elapsed = Date.now() - waveStartTimeRef.current;
+        if (elapsed >= WAVE_SPAWN_DURATION_MS) return;
         if (spawned >= monstersForThisWave) {
           return;
         }
@@ -111,29 +165,24 @@ export function useWaveSystem(selectionTarget: SelectionTarget, setSelectionTarg
       if (spawnTimerRef.current) {
         clearTimeout(spawnTimerRef.current);
       }
+      if (waveEndCancelRef.current) {
+        waveEndCancelRef.current();
+        waveEndCancelRef.current = null;
+      }
+      if (waveTickerRef.current) {
+        waveTickerRef.current.stop();
+        waveTickerRef.current = null;
+      }
     };
   }, [currentWave, gameState, createMonster]);
 
-  // Check for wave completion
+  // Auto defeat if too many monsters are alive
   useEffect(() => {
     if (gameState !== 'playing') return;
-    if (waveTransitioningRef.current) return;
-    
-    const isBoss = isBossWave(currentWave);
-    const monstersForThisWave = isBoss ? 1 : getMonstersPerWave(currentWave);
-    
-    if (monstersKilledInWave >= monstersForThisWave && monstersSpawnedInWave >= monstersForThisWave) {
-      if (currentWave >= WAVE_CONFIG.totalWaves) {
-        setGameState('gameover');
-      } else {
-        waveTransitioningRef.current = true;
-        setTimeout(() => {
-          waveTransitioningRef.current = false;
-          setCurrentWave(currentWave + 1);
-        }, WAVE_CONFIG.waveDelay);
-      }
+    if (monsters.length > MAX_ACTIVE_MONSTERS) {
+      setGameState('gameover');
     }
-  }, [monstersKilledInWave, monstersSpawnedInWave, currentWave, gameState]);
+  }, [monsters.length, gameState]);
 
   // Attack monster (called when character attack animation finishes)
   const handleAttackMonster = useCallback((_attackerId: string, monsterId: string, damage: number) => {
@@ -163,6 +212,21 @@ export function useWaveSystem(selectionTarget: SelectionTarget, setSelectionTarg
   // Restart game
   const handleRestart = useCallback(() => {
     waveTransitioningRef.current = false;
+    if (spawnTimerRef.current) {
+      clearTimeout(spawnTimerRef.current);
+      spawnTimerRef.current = null;
+    }
+    if (waveEndCancelRef.current) {
+      waveEndCancelRef.current();
+      waveEndCancelRef.current = null;
+    }
+    if (waveTickerRef.current) {
+      waveTickerRef.current.stop();
+      waveTickerRef.current = null;
+    }
+    waveStartTimeRef.current = 0;
+    setWaveTimeLeftMs(WAVE_TOTAL_DURATION_MS);
+    setSpawnTimeLeftMs(WAVE_SPAWN_DURATION_MS);
     setGameState('playing');
     setCurrentWave(0);
     setMonstersSpawnedInWave(0);
@@ -181,6 +245,8 @@ export function useWaveSystem(selectionTarget: SelectionTarget, setSelectionTarg
     monstersSpawnedInWave,
     monstersKilledInWave,
     totalMonstersKilled,
+    waveTimeLeftMs,
+    spawnTimeLeftMs,
     monsters,
     setMonsters,
     monsterPosRefs,

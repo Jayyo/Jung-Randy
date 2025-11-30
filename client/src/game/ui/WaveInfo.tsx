@@ -1,16 +1,21 @@
 // ===== WAVE INFO UI =====
-import { WAVE_CONFIG, getMonstersPerWave, isBossWave } from '../gameData';
+import {
+  WAVE_CONFIG,
+  isBossWave,
+  MAX_ACTIVE_MONSTERS,
+} from '../gameData';
+import { formatCountdown, getMonsterLimitColor } from '../controllers/waveController';
 
 interface WaveInfoProps {
   currentWave: number;
-  monstersKilledInWave: number;
-  monstersSpawnedInWave: number;
+  waveTimeLeftMs: number;
+  monstersAlive: number;
 }
 
-export function WaveInfo({ currentWave, monstersKilledInWave, monstersSpawnedInWave }: WaveInfoProps) {
+export function WaveInfo({ currentWave, waveTimeLeftMs, monstersAlive }: WaveInfoProps) {
   const isBoss = isBossWave(currentWave);
-  const totalMonsters = isBoss ? 1 : getMonstersPerWave(currentWave);
-  
+  const limitColor = getMonsterLimitColor(monstersAlive);
+
   return (
     <div style={{
       position: 'absolute',
@@ -24,16 +29,23 @@ export function WaveInfo({ currentWave, monstersKilledInWave, monstersSpawnedInW
       borderRadius: '8px',
       fontFamily: 'monospace',
       textAlign: 'center',
+      minWidth: '280px',
     }}>
       <div style={{ fontSize: '20px', fontWeight: 'bold', color: isBoss ? '#ff0000' : '#ff9900' }}>
-        {isBoss ? '🔥 BOSS WAVE' : 'Wave'} {currentWave} / {WAVE_CONFIG.totalWaves}
+        {isBoss ? '⚠ BOSS WAVE' : 'Wave'} {currentWave} / {WAVE_CONFIG.totalWaves}
       </div>
-      <div style={{ fontSize: '14px', color: '#888' }}>
-        {isBoss ? (
-          <>Boss: {monstersKilledInWave > 0 ? 'Defeated ✅' : 'Alive ⚠️'}</>
-        ) : (
-          <>Monsters: {monstersKilledInWave} / {totalMonsters} killed</>
-        )}
+      {isBoss && (
+        <div style={{ fontSize: '14px', color: '#888' }}>
+          Boss status: {monstersAlive > 0 ? 'Alive !' : 'Defeated ✔'}
+        </div>
+      )}
+      <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ fontSize: 12, color: '#ccc' }}>
+          Alive: <span style={{ color: limitColor, fontWeight: 'bold' }}>{monstersAlive}</span> / {MAX_ACTIVE_MONSTERS}
+        </div>
+        <div style={{ fontSize: 12, color: '#ccc' }}>
+          Next wave in {formatCountdown(waveTimeLeftMs)}
+        </div>
       </div>
     </div>
   );

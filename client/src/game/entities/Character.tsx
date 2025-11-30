@@ -15,6 +15,8 @@ import {
   BRIDGE_HEIGHT,
   RAMP_LENGTH,
   BOSS_PLATFORM_X,
+  ATTACK_ANIMATION_DURATION_FACTOR,
+  GLOBAL_ATTACK_SPEED_MULTIPLIER,
 } from '../constants';
 import { removeRootMotion } from '../utils';
 import { calculateDamage } from '../gameData';
@@ -49,6 +51,7 @@ export function Character({ data, isSelected, onSelect, onSelectAllSameType, mon
   const actionRef = useRef<THREE.AnimationAction | null>(null);
   const [currentState, setCurrentState] = useState<'idle' | 'running' | 'attacking' | 'passive_skill' | 'active_skill'>('idle');
   const [inRange, setInRange] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const currentTargetRef = useRef<string | null>(null);
   const aoeTargetsRef = useRef<string[]>([]);
   const pendingDamageMultiplierRef = useRef<number>(1.0);
@@ -240,7 +243,8 @@ export function Character({ data, isSelected, onSelect, onSelectAllSameType, mon
       action.clampWhenFinished = true;
 
       if (currentState === 'attacking') {
-        const targetDuration = 1 / data.stats.attackSpeed;
+        const effectiveAttackSpeed = data.stats.attackSpeed * GLOBAL_ATTACK_SPEED_MULTIPLIER;
+        const targetDuration = (1 / effectiveAttackSpeed) * ATTACK_ANIMATION_DURATION_FACTOR;
         action.timeScale = clip.duration / targetDuration;
       } else if (currentState === 'active_skill') {
         action.timeScale = 2.0;
@@ -369,7 +373,8 @@ export function Character({ data, isSelected, onSelect, onSelectAllSameType, mon
     // Only trigger attack if not already attacking AND not protected by skill lock AND no active move command
     if (isInRange && !isAttacking && !isPlayingSkillRef.current && !data.targetPosition) {
       const now = Date.now();
-      const attackCooldown = 1000 / data.stats.attackSpeed;
+      const effectiveAttackSpeed = data.stats.attackSpeed * GLOBAL_ATTACK_SPEED_MULTIPLIER;
+      const attackCooldown = 1000 / effectiveAttackSpeed;
       if (now - data.lastAttackTime > attackCooldown) {
         data.targetPosition = null;
         data.lastAttackTime = now;
@@ -396,6 +401,7 @@ export function Character({ data, isSelected, onSelect, onSelectAllSameType, mon
   const charScale = data.type === 1 ? CHARACTER1_SCALE : CHARACTER2_SCALE;
   const attackRingRadius = data.stats.attackRange / charScale;
   const selectionRingRadius = 0.6 / charScale;
+  const hitboxRadius = 0.85 / charScale;
   const skillRingRadius = (data.stats.skills.active?.range || 5.0) / charScale;
 
   const getRingColor = () => {
@@ -410,26 +416,51 @@ export function Character({ data, isSelected, onSelect, onSelectAllSameType, mon
       ref={groupRef}
       position={[data.position.x, data.position.y, data.position.z]}
       scale={[charScale, charScale, charScale]}
-      onClick={(e) => {
-        e.stopPropagation();
-        
-        // Check for double-click
-        const currentTime = Date.now();
-        const timeSinceLastClick = currentTime - lastClickTimeRef.current;
-        const isDoubleClick = timeSinceLastClick < 300; // 300ms window for double-click
-        
-        if (isDoubleClick && onSelectAllSameType) {
-          // Double-click: Select all characters of the same type
-          onSelectAllSameType(data.type);
-          lastClickTimeRef.current = 0; // Reset to prevent triple-click
-        } else {
-          // Single click: Normal selection
-          onSelect(data.id, e.shiftKey);
-          lastClickTimeRef.current = currentTime;
-        }
-      }}
     >
-      <primitive object={currentScene} />
+      {/* Hitbox helper ring - appears on hover to guide selection */}
+      <mesh
+        position={[0, 0.01, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        onPointerOver={(e) => {
+          e.stopPropagation();
+          setIsHovered(true);
+        }}
+        onPointerOut={(e) => {
+          e.stopPropagation();
+          setIsHovered(false);
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+
+          const currentTime = Date.now();
+          const timeSinceLastClick = currentTime - lastClickTimeRef.current;
+          const isDoubleClick = timeSinceLastClick < 300;
+
+          if (isDoubleClick && onSelectAllSameType) {
+            onSelectAllSameType(data.type);
+            lastClickTimeRef.current = 0;
+          } else {
+            onSelect(data.id, e.shiftKey);
+            lastClickTimeRef.current = currentTime;
+          }
+        }}
+      >
+        <circleGeometry args={[hitboxRadius, 32]} />
+        <meshBasicMaterial
+          color="#00ffaa"
+          transparent
+          opacity={isHovered ? 0.25 : 0.01}
+          depthTest={false}
+          depthWrite={false}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      <primitive
+        object={currentScene}
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+      />
 
       {/* Selection indicator - solid circle under character */}
       {isSelected && (

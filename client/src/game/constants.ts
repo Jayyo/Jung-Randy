@@ -32,3 +32,7 @@ export const CHARACTER_SPEED = 2.5;
 // Walkable area bounds
 export const INNER_BOUND = LANE_OFFSET - 0.8;
 export const BOSS_PLATFORM_HALF_SIZE = BOSS_PLATFORM_SIZE / 2 - 0.5;
+
+// Combat
+export const ATTACK_ANIMATION_DURATION_FACTOR = 0.75; // Shorten attack animation length to land hits faster
+export const GLOBAL_ATTACK_SPEED_MULTIPLIER = 1.2; // 20% faster attacks globally

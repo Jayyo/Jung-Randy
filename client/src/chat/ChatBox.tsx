@@ -2,6 +2,7 @@ import './ChatBox.css';
 import { ChatBoxProps } from './types';
 import { useChat } from './useChat';
 import { formatTime } from './utils';
+import { useRef, useEffect } from 'react';
 
 export default function ChatBox({ onSendMessage }: ChatBoxProps) {
   const {
@@ -15,13 +16,36 @@ export default function ChatBox({ onSendMessage }: ChatBoxProps) {
     handleKeyDown,
     handleInputChange,
     activateChat,
+    closeChat,
   } = useChat({ onSendMessage });
+
+  const chatBoxRef = useRef<HTMLDivElement>(null);
+
+  // 채팅창 밖 클릭 시 닫기
+  useEffect(() => {
+    if (!isActive) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (chatBoxRef.current && !chatBoxRef.current.contains(e.target as Node)) {
+        closeChat();
+      }
+    };
+
+    // 약간의 지연을 두어 현재 클릭 이벤트가 처리된 후 실행
+    setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 0);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isActive, closeChat]);
 
   return (
     <div 
-      className="chat-box" 
+      ref={chatBoxRef}
+      className={`chat-box ${isActive ? 'chat-box-active' : 'chat-box-inactive'}`}
       style={{ opacity }}
-      onClick={activateChat}
     >
       <div className="chat-header">
         <span className="chat-title">채팅 (Enter로 입력)</span>

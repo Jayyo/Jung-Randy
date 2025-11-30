@@ -12,13 +12,19 @@
   z-index: 1000;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(52, 152, 219, 0.3);
-  transition: opacity 0.5s ease;
-  cursor: pointer;
+  transition: opacity 0.5s ease, transform 0.3s ease;
+  transform: translateY(calc(100% - 60px));
+  pointer-events: none;
+}
+
+.chat-box-active {
+  transform: translateY(0);
   pointer-events: auto;
 }
 
-.chat-box:hover {
-  opacity: 1 !important;
+.chat-box-inactive {
+  transform: translateY(calc(100% - 60px));
+  pointer-events: none;
 }
 
 .chat-header {

@@ -10,54 +10,22 @@ import { Message } from './types';
 import { loadChatHistory, saveChatHistory } from './chatStorage';
 import { createUserMessage } from './messages';
 
-interface UseChatOptions {
+interface UseWarcraftChatOptions {
   onSendMessage?: (message: string) => void;
 }
 
-export function useChat({ onSendMessage }: UseChatOptions = {}) {
+export function useWarcraftChat({ onSendMessage }: UseWarcraftChatOptions = {}) {
   const [messages, setMessages] = useState<Message[]>(loadChatHistory());
   const [inputValue, setInputValue] = useState('');
   const [isActive, setIsActive] = useState(false);
-  const [opacity, setOpacity] = useState(0.3);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const fadeOutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isInputFocusedRef = useRef(false);
   const enterHeldRef = useRef(false);
-
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, []);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
 
   // 채팅 기록을 저장
   useEffect(() => {
     saveChatHistory(messages);
   }, [messages]);
-
-  // 활동 상태에 따라 불투명도 변경
-  useEffect(() => {
-    if (isActive || inputValue.length > 0) {
-      setOpacity(1.0);
-      if (fadeOutTimerRef.current) {
-        clearTimeout(fadeOutTimerRef.current);
-        fadeOutTimerRef.current = null;
-      }
-    } else {
-      fadeOutTimerRef.current = setTimeout(() => {
-        setOpacity(0.3);
-      }, 3000);
-    }
-
-    return () => {
-      if (fadeOutTimerRef.current) {
-        clearTimeout(fadeOutTimerRef.current);
-      }
-    };
-  }, [isActive, inputValue]);
 
   // 전역 키 리스너: Enter로 채팅 활성화, ESC로 채팅 비활성화
   useEffect(() => {
@@ -95,7 +63,6 @@ export function useChat({ onSendMessage }: UseChatOptions = {}) {
         enterHeldRef.current = true;
         e.preventDefault();
         setIsActive(true);
-        setOpacity(1.0);
         setTimeout(() => {
           inputRef.current?.focus();
         }, 0);
@@ -121,7 +88,6 @@ export function useChat({ onSendMessage }: UseChatOptions = {}) {
     const handleFocus = () => {
       isInputFocusedRef.current = true;
       setIsActive(true);
-      setOpacity(1.0);
     };
     const handleBlur = () => {
       isInputFocusedRef.current = false;
@@ -154,8 +120,8 @@ export function useChat({ onSendMessage }: UseChatOptions = {}) {
     setInputValue('');
 
     const newMessage = createUserMessage(messageText);
-
     setMessages((prev) => [...prev, newMessage]);
+
     setIsActive(false);
     inputRef.current?.blur();
 
@@ -184,14 +150,6 @@ export function useChat({ onSendMessage }: UseChatOptions = {}) {
     }
   }, [isActive]);
 
-  const activateChat = useCallback(() => {
-    if (!isActive) {
-      setIsActive(true);
-      setOpacity(1.0);
-      inputRef.current?.focus();
-    }
-  }, [isActive]);
-
   const closeChat = useCallback(() => {
     setIsActive(false);
     setInputValue('');
@@ -202,13 +160,10 @@ export function useChat({ onSendMessage }: UseChatOptions = {}) {
     messages,
     inputValue,
     isActive,
-    opacity,
-    messagesEndRef,
     inputRef,
     handleSend,
     handleKeyDown,
     handleInputChange,
-    activateChat,
     closeChat,
   };
 }

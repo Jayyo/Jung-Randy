@@ -1,5 +1,5 @@
 // ===== STATUS PANEL UI (Bottom Panel) =====
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CharacterData, MonsterData, SelectionTarget } from '../types';
 import { BuildingType, BUILDINGS } from '../buildings';
 import {
@@ -20,7 +20,21 @@ interface StatusPanelProps {
   selectedBuilding?: BuildingType | null;
 }
 
-export function StatusPanel({ selectionTarget, characters, monsters, onUseActiveSkill, onSelectCharacter, selectedBuilding }: StatusPanelProps) {
+export function StatusPanel({
+  selectionTarget,
+  characters,
+  monsters,
+  onUseActiveSkill,
+  onSelectCharacter,
+  selectedBuilding,
+}: StatusPanelProps) {
+  const [multiPage, setMultiPage] = useState(0);
+
+  // Reset page when selection target changes
+  useEffect(() => {
+    setMultiPage(0);
+  }, [selectionTarget]);
+
   // Show building panel if building is selected
   if (selectedBuilding) {
     return <BuildingStatusPanel buildingType={selectedBuilding} />;
@@ -34,64 +48,17 @@ export function StatusPanel({ selectionTarget, characters, monsters, onUseActive
     if (!monster || monster.isDying) return null;
 
     return (
-      <div style={{
-        position: 'absolute',
-        bottom: 20,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        background: 'rgba(40, 10, 10, 0.95)',
-        border: '2px solid #8b0000',
-        borderRadius: '12px',
-        padding: '15px 25px',
-        color: 'white',
-        fontFamily: 'monospace',
-        minWidth: '300px',
-        zIndex: 100,
-      }}>
+      <div style={panelStyle('monster')}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          {/* Monster portrait placeholder */}
-          <div style={{
-            width: '64px',
-            height: '64px',
-            background: '#1a1a1a',
-            border: '2px solid #660000',
-            borderRadius: '8px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '32px',
-          }}>
-            👹
-          </div>
-          {/* Monster info */}
+          <div style={portraitBox('#1a1a1a', '#660000', 64, 8)}>👹</div>
           <div style={{ flex: 1 }}>
             <h3 style={{ margin: '0 0 8px 0', color: '#ff6666' }}>
               Wave {monster.wave} Monster
             </h3>
-            {/* HP bar */}
-            <div style={{ marginBottom: '8px' }}>
-              <div style={{ fontSize: '12px', color: '#aaa', marginBottom: '2px' }}>
-                HP: {monster.hp} / {monster.maxHp}
-              </div>
-              <div style={{
-                width: '100%',
-                height: '12px',
-                background: '#333',
-                borderRadius: '6px',
-                overflow: 'hidden',
-              }}>
-                <div style={{
-                  width: `${(monster.hp / monster.maxHp) * 100}%`,
-                  height: '100%',
-                  background: monster.hp > monster.maxHp / 2 ? '#4CAF50' : '#f44336',
-                  transition: 'width 0.2s',
-                }} />
-              </div>
-            </div>
-            {/* Stats */}
-            <div style={{ display: 'flex', gap: '20px', fontSize: '12px', color: '#ccc' }}>
-              <span>⚔️ ATK: {monster.damage}</span>
-              <span>🛡️ DEF: {monster.defense}</span>
+            <StatBar label="HP" value={monster.hp} max={monster.maxHp} />
+            <div style={{ display: 'flex', gap: '20px', fontSize: 12, color: '#ccc' }}>
+              <span>ATK: {monster.damage}</span>
+              <span>DEF: {monster.defense}</span>
             </div>
           </div>
         </div>
@@ -103,88 +70,68 @@ export function StatusPanel({ selectionTarget, characters, monsters, onUseActive
   const selectedChars = characters.filter(c => selectionTarget.ids.includes(c.id));
   if (selectedChars.length === 0) return null;
 
-  // Multi-select: show portrait grid
+  // Multi-select: paginated grid 9x2 with counter slot
   if (selectedChars.length > 1) {
-    return (
-      <div style={{
-        position: 'absolute',
-        bottom: 20,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        background: 'rgba(10, 30, 10, 0.95)',
-        border: '2px solid #4a7c4a',
-        borderRadius: '12px',
-        padding: '15px 20px',
-        color: 'white',
-        fontFamily: 'monospace',
-        zIndex: 100,
-      }}>
-        <div style={{ fontSize: '12px', color: '#aaa', marginBottom: '10px' }}>
-          Selected: {selectedChars.length} units
+    const pageSize = 18; // 9x2
+    const totalPages = Math.max(1, Math.ceil(selectedChars.length / (pageSize - 1)));
+    const pageIndex = Math.min(multiPage, totalPages - 1);
+    const pageStart = pageIndex * (pageSize - 1);
+    const remaining = Math.max(0, selectedChars.length - (pageStart + (pageSize - 1)));
+    const pageSlice = selectedChars.slice(pageStart, pageStart + (pageSize - 1));
+    const itemsWithCounter = [...pageSlice, { id: 'counter', remaining }];
+    const firstRow = itemsWithCounter.slice(0, 9);
+    let secondRow = itemsWithCounter.slice(9, 18);
+    if (pageIndex > 0 && secondRow.length === 0) {
+      secondRow = [{ id: 'placeholder' }];
+    }
+
+    const goNextPage = () => setMultiPage((pageIndex + 1) % totalPages);
+    const goPrevPage = () => setMultiPage(pageIndex === 0 ? totalPages - 1 : pageIndex - 1);
+    const goFirstPage = () => setMultiPage(0);
+
+    const renderTile = (item: any, key: string) => {
+      if (item?.id === 'counter') {
+        const counterRemaining = (item as any).remaining as number;
+        const label = counterRemaining > 0 ? `+${counterRemaining}` : '↩';
+        const handler = counterRemaining > 0 ? goNextPage : goFirstPage;
+        return (
+          <div key={key} style={counterBox} onClick={handler} title={counterRemaining > 0 ? 'Next page' : 'First page'}>
+            {label}
+          </div>
+        );
+      }
+      if (item?.id === 'placeholder') {
+        return <div key={key} style={{ width: 48, height: 48, borderRadius: 6, opacity: 0 }} />;
+      }
+      const char = item as CharacterData;
+      return (
+        <div
+          key={key}
+          onClick={() => onSelectCharacter(char.id)}
+          style={tileBox}
+        >
+          <div style={{ fontSize: 20 }}>{char.type === 1 ? '🥊' : '💪'}</div>
+          <MiniHpBar current={char.currentHp} max={char.stats.maxHp} />
         </div>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(6, 1fr)',
-          gap: '8px',
-          maxWidth: '400px',
-        }}>
-          {selectedChars.slice(0, 12).map(char => (
-            <div
-              key={char.id}
-              onClick={() => onSelectCharacter(char.id)}
-              style={{
-                width: '48px',
-                height: '48px',
-                background: '#1a3a1a',
-                border: '2px solid #4a7c4a',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
-              }}
-            >
-              <div style={{ fontSize: '20px' }}>
-                {char.type === 1 ? '🥊' : '💪'}
-              </div>
-              {/* Mini HP bar */}
-              <div style={{
-                position: 'absolute',
-                bottom: '2px',
-                left: '2px',
-                right: '2px',
-                height: '4px',
-                background: '#333',
-                borderRadius: '2px',
-              }}>
-                <div style={{
-                  width: `${(char.currentHp / char.stats.maxHp) * 100}%`,
-                  height: '100%',
-                  background: char.currentHp > char.stats.maxHp / 2 ? '#4CAF50' : '#f44336',
-                }} />
-              </div>
-            </div>
-          ))}
-          {/* Show +N indicator if more than 12 units selected */}
-          {selectedChars.length > 12 && (
-            <div style={{
-              width: '48px',
-              height: '48px',
-              background: '#2a2a2a',
-              border: '2px solid #666',
-              borderRadius: '6px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '14px',
-              color: '#aaa',
-              fontWeight: 'bold',
-            }}>
-              +{selectedChars.length - 12}
+      );
+    };
+
+    return (
+      <div style={panelStyle()}>
+        <div style={headerRow}>
+          <span>Selected: {selectedChars.length} units</span>
+          {totalPages > 1 && (
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button type="button" onClick={goPrevPage} style={navBtn} title="Prev">‹</button>
+              <button type="button" onClick={goNextPage} style={navBtn} title="Next">›</button>
             </div>
           )}
+        </div>
+        <div style={gridRow}>
+          {firstRow.map((item, idx) => renderTile(item, `row1-${pageIndex}-${idx}`))}
+        </div>
+        <div style={{ ...gridRow, marginTop: 8 }}>
+          {secondRow.map((item, idx) => renderTile(item, `row2-${pageIndex}-${idx}`))}
         </div>
       </div>
     );
@@ -195,132 +142,200 @@ export function StatusPanel({ selectionTarget, characters, monsters, onUseActive
   const stats = char.stats;
   const activeSkill = stats.skills.active;
   const passiveSkill = stats.skills.passive;
-  const canUseActive = activeSkill && (Date.now() - char.lastActiveSkillTime > activeSkill.cooldown);
+  const canUseActive = !!activeSkill && (Date.now() - char.lastActiveSkillTime > activeSkill.cooldown);
   const activeCooldownRemaining = activeSkill
     ? Math.max(0, activeSkill.cooldown - (Date.now() - char.lastActiveSkillTime))
     : 0;
 
   return (
-    <div style={{
-      position: 'absolute',
-      bottom: 20,
-      left: '50%',
-      transform: 'translateX(-50%)',
-      background: 'rgba(10, 30, 10, 0.95)',
-      border: '2px solid #4a7c4a',
-      borderRadius: '12px',
-      padding: '15px 25px',
-      color: 'white',
-      fontFamily: 'monospace',
-      minWidth: '400px',
-      zIndex: 100,
-    }}>
-      <div style={{ display: 'flex', gap: '20px' }}>
-        {/* Character portrait */}
-        <div style={{
-          width: '80px',
-          height: '80px',
-          background: '#1a3a1a',
-          border: '2px solid #4a7c4a',
-          borderRadius: '8px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '40px',
-        }}>
+    <div style={panelStyle()}>
+      <div style={{ display: 'flex', gap: 20 }}>
+        <div style={portraitBox('#1a3a1a', '#4a7c4a', 80, 8)}>
           {char.type === 1 ? '🥊' : '💪'}
         </div>
 
-        {/* Character info */}
         <div style={{ flex: 1 }}>
-          <h3 style={{ margin: '0 0 8px 0', color: '#90EE90' }}>
-            {stats.name}
-          </h3>
-          {/* HP bar */}
-          <div style={{ marginBottom: '8px' }}>
-            <div style={{ fontSize: '12px', color: '#aaa', marginBottom: '2px' }}>
-              HP: {char.currentHp} / {stats.maxHp}
-            </div>
-            <div style={{
-              width: '100%',
-              height: '12px',
-              background: '#333',
-              borderRadius: '6px',
-              overflow: 'hidden',
-            }}>
-              <div style={{
-                width: `${(char.currentHp / stats.maxHp) * 100}%`,
-                height: '100%',
-                background: char.currentHp > stats.maxHp / 2 ? '#4CAF50' : '#f44336',
-                transition: 'width 0.2s',
-              }} />
-            </div>
-          </div>
-          {/* Stats row */}
-          <div style={{ display: 'flex', gap: '15px', fontSize: '12px', color: '#ccc' }}>
-            <span>⚔️ ATK: {stats.attack}</span>
-            <span>🛡️ DEF: {stats.defense}</span>
-            <span>⚡ SPD: {stats.attackSpeed.toFixed(1)}/s</span>
+          <h3 style={{ margin: '0 0 8px 0', color: '#90ee90' }}>{stats.name}</h3>
+          <StatBar label="HP" value={char.currentHp} max={stats.maxHp} />
+          <div style={{ display: 'flex', gap: 15, fontSize: 12, color: '#ccc' }}>
+            <span>ATK: {stats.attack}</span>
+            <span>DEF: {stats.defense}</span>
+            <span>SPD: {stats.attackSpeed.toFixed(1)}/s</span>
           </div>
         </div>
 
-        {/* Skills section */}
-        <div style={{ display: 'flex', gap: '10px' }}>
-          {/* Passive skill */}
+        <div style={{ display: 'flex', gap: 10 }}>
           {passiveSkill && (
             <div
               title={`${passiveSkill.name}: ${passiveSkill.description}\n${Math.round(passiveSkill.triggerChance * 100)}% chance, ${passiveSkill.damageMultiplier}x damage`}
-              style={{
-                width: '50px',
-                height: '50px',
-                background: '#2a2a4a',
-                border: '2px solid #6a6a8a',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '24px',
-                cursor: 'help',
-              }}
+              style={skillBox('#2a2a4a', '#6a6a8a', '#ffffff', 'help')}
             >
-              ⚡
+              P
             </div>
           )}
-          {/* Active skill */}
           {activeSkill && (
             <div
               onClick={() => canUseActive && onUseActiveSkill(char.id)}
               title={`${activeSkill.name}: ${activeSkill.description}\nCooldown: ${activeSkill.cooldown / 1000}s, ${activeSkill.damageMultiplier}x damage`}
-              style={{
-                width: '50px',
-                height: '50px',
-                background: canUseActive ? '#4a2a2a' : '#2a2a2a',
-                border: `2px solid ${canUseActive ? '#ff6666' : '#666'}`,
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '24px',
-                cursor: canUseActive ? 'pointer' : 'not-allowed',
-                position: 'relative',
-                opacity: canUseActive ? 1 : 0.6,
-              }}
+              style={skillBox(
+                canUseActive ? '#4a2a2a' : '#2a2a2a',
+                canUseActive ? '#ff6666' : '#666',
+                '#ffffff',
+                canUseActive ? 'pointer' : 'not-allowed',
+                !canUseActive,
+              )}
             >
-              🔥
-              {/* Cooldown overlay */}
+              A
               {activeCooldownRemaining > 0 && (
-                <div style={{
-                  position: 'absolute',
-                  bottom: '-18px',
-                  fontSize: '10px',
-                  color: '#ff6666',
-                }}>
+                <div style={{ position: 'absolute', bottom: -18, fontSize: 10, color: '#ff6666' }}>
                   {(activeCooldownRemaining / 1000).toFixed(1)}s
                 </div>
               )}
             </div>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ===== SMALL COMPONENTS & STYLES =====
+const panelStyle = (mode: 'character' | 'monster' = 'character') => ({
+  position: 'absolute' as const,
+  bottom: 20,
+  left: '50%',
+  transform: 'translateX(-50%)',
+  background: mode === 'monster' ? 'rgba(40, 10, 10, 0.95)' : 'rgba(10, 30, 10, 0.95)',
+  border: `2px solid ${mode === 'monster' ? '#8b0000' : '#4a7c4a'}`,
+  borderRadius: '12px',
+  padding: mode === 'monster' ? '15px 25px' : '15px 20px',
+  color: 'white',
+  fontFamily: 'monospace',
+  minWidth: '640px',
+  zIndex: 100,
+});
+
+const portraitBox = (bg: string, border: string, size: number, radius: number) => ({
+  width: size,
+  height: size,
+  background: bg,
+  border: `2px solid ${border}`,
+  borderRadius: radius,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontSize: size / 2,
+});
+
+const tileBox = {
+  width: '48px',
+  height: '48px',
+  background: '#1a3a1a',
+  border: '2px solid #4a7c4a',
+  borderRadius: '6px',
+  cursor: 'pointer',
+  display: 'flex',
+  flexDirection: 'column' as const,
+  alignItems: 'center',
+  justifyContent: 'center',
+  position: 'relative' as const,
+};
+
+const counterBox = {
+  width: '48px',
+  height: '48px',
+  background: '#2a2a2a',
+  border: '2px solid #666',
+  borderRadius: '6px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontSize: '14px',
+  color: '#aaa',
+  fontWeight: 'bold',
+  cursor: 'pointer',
+};
+
+const headerRow = {
+  fontSize: '12px',
+  color: '#aaa',
+  marginBottom: '10px',
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+} as const;
+
+const navBtn = {
+  padding: '4px 8px',
+  background: '#2a2a2a',
+  border: '1px solid #666',
+  borderRadius: 6,
+  color: '#fff',
+  fontSize: 12,
+  cursor: 'pointer',
+} as const;
+
+const gridRow = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(9, 1fr)',
+  gap: '8px',
+  maxWidth: '640px',
+} as const;
+
+const skillBox = (bg: string, border: string, color: string, cursor: string, dim?: boolean) => ({
+  width: '50px',
+  height: '50px',
+  background: bg,
+  border: `2px solid ${border}`,
+  borderRadius: '8px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontSize: '24px',
+  cursor,
+  position: 'relative' as const,
+  opacity: dim ? 0.6 : 1,
+});
+
+function MiniHpBar({ current, max }: { current: number; max: number }) {
+  return (
+    <div style={{
+      position: 'absolute',
+      bottom: '2px',
+      left: '2px',
+      right: '2px',
+      height: '4px',
+      background: '#333',
+      borderRadius: '2px',
+    }}>
+      <div style={{
+        width: `${(current / max) * 100}%`,
+        height: '100%',
+        background: current > max / 2 ? '#4CAF50' : '#f44336',
+      }} />
+    </div>
+  );
+}
+
+function StatBar({ label, value, max }: { label: string; value: number; max: number }) {
+  return (
+    <div style={{ marginBottom: 8 }}>
+      <div style={{ fontSize: 12, color: '#aaa', marginBottom: 2 }}>
+        {label}: {value} / {max}
+      </div>
+      <div style={{
+        width: '100%',
+        height: 12,
+        background: '#333',
+        borderRadius: 6,
+        overflow: 'hidden',
+      }}>
+        <div style={{
+          width: `${(value / max) * 100}%`,
+          height: '100%',
+          background: value > max / 2 ? '#4CAF50' : '#f44336',
+          transition: 'width 0.2s',
+        }} />
       </div>
     </div>
   );
@@ -342,23 +357,12 @@ function BuildingStatusPanel({ buildingType }: { buildingType: BuildingType }) {
       padding: '15px 25px',
       color: 'white',
       fontFamily: 'monospace',
-      minWidth: '500px',
+      minWidth: '640px',
       maxWidth: '700px',
       zIndex: 100,
     }}>
-      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
-        <div style={{
-          width: 60,
-          height: 60,
-          background: '#2a2a4a',
-          border: '2px solid #6a6a9a',
-          borderRadius: '8px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: 32,
-        }}>
+        <div style={portraitBox('#2a2a4a', '#6a6a9a', 60, 8)}>
           {building.icon}
         </div>
         <div>
@@ -367,7 +371,6 @@ function BuildingStatusPanel({ buildingType }: { buildingType: BuildingType }) {
         </div>
       </div>
 
-      {/* Content based on building type */}
       {buildingType === 'gacha' && <GachaPanel />}
       {buildingType === 'upgrade' && <UpgradePanel />}
       {buildingType === 'quest' && <QuestPanel />}
@@ -397,43 +400,23 @@ function GachaPanel() {
 
   return (
     <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-      {/* Pull buttons */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <button
           onClick={() => handlePull('common')}
           disabled={isAnimating}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: isAnimating ? '#333' : '#4a90d9',
-            border: 'none',
-            borderRadius: 6,
-            color: '#fff',
-            fontWeight: 'bold',
-            fontSize: 12,
-            cursor: isAnimating ? 'not-allowed' : 'pointer',
-          }}
+          style={pullBtn(isAnimating ? '#333' : '#4a90d9')}
         >
-          🎲 일반 뽑기 (100G)
+          Common Draw (100G)
         </button>
         <button
           onClick={() => handlePull('rare')}
           disabled={isAnimating}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: isAnimating ? '#333' : '#9932cc',
-            border: 'none',
-            borderRadius: 6,
-            color: '#fff',
-            fontWeight: 'bold',
-            fontSize: 12,
-            cursor: isAnimating ? 'not-allowed' : 'pointer',
-          }}
+          style={pullBtn(isAnimating ? '#333' : '#9932cc')}
         >
-          ✨ 고급 뽑기 (500G)
+          Rare Draw (500G)
         </button>
       </div>
 
-      {/* Result */}
       <div style={{
         flex: 1,
         display: 'flex',
@@ -445,7 +428,7 @@ function GachaPanel() {
         minHeight: 80,
       }}>
         {isAnimating ? (
-          <div style={{ color: '#ffd700', fontSize: 18 }}>🎰 뽑는 중...</div>
+          <div style={{ color: '#ffd700', fontSize: 18 }}>Drawing...</div>
         ) : lastPull ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{
@@ -468,11 +451,10 @@ function GachaPanel() {
             </div>
           </div>
         ) : (
-          <div style={{ color: '#666', fontSize: 12 }}>뽑기 버튼을 눌러주세요</div>
+          <div style={{ color: '#666', fontSize: 12 }}>Press draw to get a unit</div>
         )}
       </div>
 
-      {/* Rates */}
       <div style={{ fontSize: 10, color: '#666', lineHeight: 1.6 }}>
         <div><span style={{ color: RARITY_COLORS.common }}>●</span> Common 60%</div>
         <div><span style={{ color: RARITY_COLORS.uncommon }}>●</span> Uncommon 30%</div>
@@ -483,6 +465,17 @@ function GachaPanel() {
   );
 }
 
+const pullBtn = (bg: string) => ({
+  padding: '10px 20px',
+  backgroundColor: bg,
+  border: 'none',
+  borderRadius: 6,
+  color: 'white',
+  fontWeight: 'bold',
+  fontSize: 12,
+  cursor: 'pointer',
+});
+
 // ===== UPGRADE PANEL =====
 function UpgradePanel() {
   const [selectedChar, setSelectedChar] = useState<DummyCharacter | null>(null);
@@ -490,7 +483,6 @@ function UpgradePanel() {
 
   return (
     <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-      {/* Character list */}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', maxWidth: 280 }}>
         {upgradeableChars.map((char) => (
           <div
@@ -517,7 +509,6 @@ function UpgradePanel() {
         ))}
       </div>
 
-      {/* Selected character info */}
       <div style={{
         flex: 1,
         backgroundColor: 'rgba(0,0,0,0.3)',
@@ -545,9 +536,9 @@ function UpgradePanel() {
             <div>
               <div style={{ color: '#fff', fontWeight: 'bold', marginBottom: 4 }}>{selectedChar.name}</div>
               <div style={{ display: 'flex', gap: 12, fontSize: 11 }}>
-                <span style={{ color: '#ff6b6b' }}>⚔️ {selectedChar.attack}</span>
-                <span style={{ color: '#4dabf7' }}>🛡️ {selectedChar.defense}</span>
-                <span style={{ color: '#51cf66' }}>❤️ {selectedChar.hp}</span>
+                <span style={{ color: '#ff6b6b' }}>ATK {selectedChar.attack}</span>
+                <span style={{ color: '#4dabf7' }}>DEF {selectedChar.defense}</span>
+                <span style={{ color: '#51cf66' }}>HP {selectedChar.hp}</span>
               </div>
             </div>
             <button style={{
@@ -560,11 +551,11 @@ function UpgradePanel() {
               fontSize: 11,
               cursor: 'pointer',
             }}>
-              ⬆️ 강화 (200G)
+              Upgrade (200G)
             </button>
           </div>
         ) : (
-          <div style={{ color: '#666', fontSize: 12 }}>강화할 캐릭터를 선택하세요</div>
+          <div style={{ color: '#666', fontSize: 12 }}>Select a character to upgrade</div>
         )}
       </div>
     </div>
@@ -574,9 +565,9 @@ function UpgradePanel() {
 // ===== QUEST PANEL =====
 function QuestPanel() {
   const quests = [
-    { id: 1, name: '첫 번째 승리', reward: '100G', progress: 1, total: 1, completed: true },
-    { id: 2, name: '몬스터 50마리', reward: '300G', progress: 32, total: 50, completed: false },
-    { id: 3, name: '캐릭터 5개 수집', reward: '뽑기권', progress: 3, total: 5, completed: false },
+    { id: 1, name: 'First victory', reward: '100G', progress: 1, total: 1, completed: true },
+    { id: 2, name: 'Defeat 50 monsters', reward: '300G', progress: 32, total: 50, completed: false },
+    { id: 3, name: 'Collect 5 characters', reward: 'Draw ticket', progress: 3, total: 5, completed: false },
   ];
 
   return (
@@ -627,7 +618,7 @@ function QuestPanel() {
                 fontSize: 10,
                 cursor: 'pointer',
               }}>
-                수령
+                Claim
               </button>
             )}
           </div>
@@ -636,3 +627,4 @@ function QuestPanel() {
     </div>
   );
 }
+
