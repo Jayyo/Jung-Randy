@@ -311,7 +311,8 @@ export function PoliticianCharacter({
   const charScale = DUMMY_SCALE;
   const attackRingRadius = data.stats.attackRange / charScale;
   const selectionRingRadius = 0.6 / charScale;
-  const hitboxRadius = 0.85 / charScale;
+  const hitboxRadius = 1.1 / charScale;
+  const hitboxHeight = 2.2 / charScale;
 
   const getRingColor = () => {
     if (inRange) return '#ff0000';
@@ -326,6 +327,32 @@ export function PoliticianCharacter({
     return '#00ff00';
   };
 
+  const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation();
+    setIsHovered(true);
+  };
+
+  const handlePointerOut = (e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation();
+    setIsHovered(false);
+  };
+
+  const handleSelectClick = (e: ThreeEvent<MouseEvent>) => {
+    e.stopPropagation();
+
+    const currentTime = Date.now();
+    const timeSinceLastClick = currentTime - lastClickTimeRef.current;
+    const isDoubleClick = timeSinceLastClick < 300;
+
+    if (isDoubleClick && onSelectAllSameType) {
+      onSelectAllSameType(data.type);
+      lastClickTimeRef.current = 0;
+    } else {
+      onSelect(data.id, e.shiftKey);
+      lastClickTimeRef.current = currentTime;
+    }
+  };
+
   return (
     <group
       ref={groupRef}
@@ -336,35 +363,33 @@ export function PoliticianCharacter({
       <mesh
         position={[0, 0.01, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
-        onPointerOver={(e) => {
-          e.stopPropagation();
-          setIsHovered(true);
-        }}
-        onPointerOut={(e) => {
-          e.stopPropagation();
-          setIsHovered(false);
-        }}
-        onClick={(e) => {
-          e.stopPropagation();
-
-          const currentTime = Date.now();
-          const timeSinceLastClick = currentTime - lastClickTimeRef.current;
-          const isDoubleClick = timeSinceLastClick < 300;
-
-          if (isDoubleClick && onSelectAllSameType) {
-            onSelectAllSameType(data.type);
-            lastClickTimeRef.current = 0;
-          } else {
-            onSelect(data.id, e.shiftKey);
-            lastClickTimeRef.current = currentTime;
-          }
-        }}
+        onPointerOver={handlePointerOver}
+        onPointerOut={handlePointerOut}
+        onClick={handleSelectClick}
       >
         <circleGeometry args={[hitboxRadius, 32]} />
         <meshBasicMaterial
           color="#00ffaa"
           transparent
           opacity={isHovered ? 0.25 : 0.01}
+          depthTest={false}
+          depthWrite={false}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      {/* Upright cylinder hitbox for easier clicking in the center */}
+      <mesh
+        position={[0, hitboxHeight / 2, 0]}
+        onPointerOver={handlePointerOver}
+        onPointerOut={handlePointerOut}
+        onClick={handleSelectClick}
+      >
+        <cylinderGeometry args={[hitboxRadius, hitboxRadius, hitboxHeight, 12]} />
+        <meshBasicMaterial
+          color="#00ffaa"
+          transparent
+          opacity={isHovered ? 0.08 : 0.02}
           depthTest={false}
           depthWrite={false}
           side={THREE.DoubleSide}
