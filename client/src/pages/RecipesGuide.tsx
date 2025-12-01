@@ -120,7 +120,7 @@ const RecipesGuide = () => {
   );
 
   return (
-    <div className="bg-slate-900 text-gray-100 p-6 min-h-screen font-sans">
+    <div className="fixed inset-0 bg-slate-900 text-gray-100 p-6 font-sans overflow-auto">
       <div className="max-w-5xl mx-auto space-y-8">
 
         {/* Header */}
