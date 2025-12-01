@@ -161,6 +161,8 @@ function RecipeRow({
         padding: '6px 8px',
         backgroundColor: 'rgba(0, 0, 0, 0.3)',
         borderRadius: 8,
+        position: 'relative',
+        zIndex: 0, // keep rows below popups/tooltips
       }}
     >
       {/* Materials */}
@@ -232,7 +234,7 @@ function PoliticianDetail({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 1001,
+        zIndex: 3001,
       }}
       onClick={onClose}
     >
@@ -451,7 +453,7 @@ export function RecipePanel({ isOpen, onClose }: RecipePanelProps) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 1000,
+          zIndex: 3000, // keep above in-game nametags
         }}
         onClick={onClose}
       >

@@ -30,6 +30,7 @@ export function ControlsPanel({ characters, monsters, totalMonstersKilled }: Con
       <p style={{ margin: '5px 0', color: '#666' }}>Wheel: Zoom</p>
       <p style={{ margin: '5px 0', color: '#666' }}>Ctrl+Wheel: Angle</p>
       <p style={{ margin: '5px 0', color: '#666' }}>Middle-drag: Pan</p>
+      <p style={{ margin: '5px 0', color: '#666' }}>X: Toggle pointer lock + pan</p>
       <p style={{ margin: '5px 0', color: '#666' }}>Shift+click: Add to selection</p>
       <p style={{ margin: '5px 0', color: '#666' }}>Ctrl+Number: Assign control group</p>
       <p style={{ margin: '5px 0', color: '#666' }}>C: Recipe panel</p>

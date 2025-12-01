@@ -56,6 +56,36 @@ export function RTSCameraController() {
   useEffect(() => {
     const canvas = gl.domElement;
 
+    const stopPanning = () => {
+      isPanningRef.current = false;
+    };
+
+    const handlePointerLockChange = () => {
+      // If pointer lock is lost (e.g., user presses ESC), stop panning to avoid jump
+      if (document.pointerLockElement !== canvas) {
+        stopPanning();
+      } else {
+        // Pointer lock acquired -> enable panning via movementX/Y
+        isPanningRef.current = true;
+        lastMouseRef.current = { x: 0, y: 0 };
+      }
+    };
+
+    const togglePointerLock = () => {
+      if (document.pointerLockElement === canvas) {
+        document.exitPointerLock();
+        stopPanning();
+      } else if (canvas.requestPointerLock) {
+        canvas.requestPointerLock();
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === 'x') {
+        togglePointerLock();
+      }
+    };
+
     // Wheel: Zoom in/out or Ctrl+Wheel: Angle adjustment
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
@@ -77,16 +107,25 @@ export function RTSCameraController() {
     const handleMouseDown = (e: MouseEvent) => {
       if (e.button === 1) { // Middle click
         e.preventDefault();
+
+        // Request pointer lock so cursor stays in-game while panning
+        if (document.pointerLockElement !== canvas && canvas.requestPointerLock) {
+          canvas.requestPointerLock();
+        }
+
         isPanningRef.current = true;
         lastMouseRef.current = { x: e.clientX, y: e.clientY };
       }
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isPanningRef.current) return;
+      // Allow movement-driven panning when pointer is locked even without middle button
+      const isLocked = document.pointerLockElement === canvas;
+      if (!isPanningRef.current && !isLocked) return;
 
-      const dx = e.clientX - lastMouseRef.current.x;
-      const dy = e.clientY - lastMouseRef.current.y;
+      // Use movementX/Y when locked to keep working even if cursor would leave the window
+      const dx = isLocked ? e.movementX : e.clientX - lastMouseRef.current.x;
+      const dy = isLocked ? e.movementY : e.clientY - lastMouseRef.current.y;
 
       // Pan speed scales with distance for consistent feel
       const panSpeed = 0.02 * (currentDistance.current / 15);
@@ -106,7 +145,10 @@ export function RTSCameraController() {
 
     const handleMouseUp = (e: MouseEvent) => {
       if (e.button === 1) {
-        isPanningRef.current = false;
+        stopPanning();
+        if (document.pointerLockElement === canvas) {
+          document.exitPointerLock();
+        }
       }
     };
 
@@ -120,6 +162,8 @@ export function RTSCameraController() {
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
     canvas.addEventListener('auxclick', handleContextMenuPrevention);
+    document.addEventListener('pointerlockchange', handlePointerLockChange);
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
       canvas.removeEventListener('wheel', handleWheel);
@@ -127,6 +171,8 @@ export function RTSCameraController() {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
       canvas.removeEventListener('auxclick', handleContextMenuPrevention);
+      document.removeEventListener('pointerlockchange', handlePointerLockChange);
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [camera, gl]);
 

@@ -252,7 +252,7 @@ export interface WaveConfig {
 
 export const WAVE_SPAWN_DURATION_MS = 90_000; // Spawn window per wave (1m 30s)
 export const WAVE_TOTAL_DURATION_MS = 120_000; // Full wave length (2 minutes)
-export const MAX_ACTIVE_MONSTERS = 200; // Lose if more than this are alive
+export const MAX_ACTIVE_MONSTERS = 120; // Lose if more than this are alive
 
 export const WAVE_CONFIG: WaveConfig = {
   totalWaves: 50, // 50 rounds for extended gameplay

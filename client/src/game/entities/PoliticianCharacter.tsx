@@ -398,6 +398,7 @@ export function PoliticianCharacter({
           position={[0, 2.5 / charScale, 0]}
           center
           distanceFactor={10}
+          zIndexRange={[0, 0]} // keep nameplates below UI modals
           style={{
             pointerEvents: 'none',
             userSelect: 'none',
