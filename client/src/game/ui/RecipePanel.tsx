@@ -18,9 +18,31 @@ import {
 
 import { CharacterPreview, preloadCharacterPreviews } from './CharacterPreview';
 
-// Derived recipe lists (filtering from ALL_RECIPES)
-const LV1_TO_LV2_RECIPES = ALL_RECIPES.filter(r => r.result === 'random_lv2');
-const LV2_TO_LV3_RECIPES = ALL_RECIPES.filter(r => r.result !== 'random_lv2');
+// Derive recipe lists by result tier (computed once at module load)
+function groupRecipesByResultTier() {
+  const result: Record<string, typeof ALL_RECIPES> = {
+    lv2: [],
+    lv3: [],
+    lv4: [],
+    lv5: [],
+    lv6: [],
+    x: [],
+    z: [],
+  };
+  for (const recipe of ALL_RECIPES) {
+    if (recipe.result === 'random_lv2') {
+      result.lv2.push(recipe);
+      continue;
+    }
+    const politician = getPoliticianById(recipe.result);
+    if (politician && result[politician.tier]) {
+      result[politician.tier].push(recipe);
+    }
+  }
+  return result;
+}
+
+const RECIPES_BY_TIER = groupRecipesByResultTier();
 
 interface RecipePanelProps {
   isOpen: boolean;
@@ -423,9 +445,12 @@ function PoliticianDetail({
   );
 }
 
+// Tab ID type for recipe panel
+type RecipeTabId = 'all' | 'lv2' | 'lv3' | 'lv4' | 'lv5' | 'lv6' | 'x' | 'z';
+
 // Main RecipePanel component
 export function RecipePanel({ isOpen, onClose, ownedPoliticianIds }: RecipePanelProps) {
-  const [selectedTier, setSelectedTier] = useState<PoliticianTier | 'all'>('all');
+  const [selectedTab, setSelectedTab] = useState<RecipeTabId>('all');
   const [selectedPolitician, setSelectedPolitician] = useState<Politician | null>(null);
 
   // Preload all character previews when panel opens
@@ -439,15 +464,34 @@ export function RecipePanel({ isOpen, onClose, ownedPoliticianIds }: RecipePanel
 
   if (!isOpen) return null;
 
-  const tiers: (PoliticianTier | 'all')[] = ['all', 'lv1', 'lv2', 'lv3'];
+  // Tab configuration for all tiers
+  const tabs: { id: RecipeTabId; label: string; color: string }[] = [
+    { id: 'all', label: '전체', color: '#666' },
+    { id: 'lv2', label: '기초→일반', color: TIER_COLORS.lv2 },
+    { id: 'lv3', label: '일반→중진', color: TIER_COLORS.lv3 },
+    { id: 'lv4', label: '중진→거물', color: TIER_COLORS.lv4 },
+    { id: 'lv5', label: '거물→대통령', color: TIER_COLORS.lv5 },
+    { id: 'lv6', label: '대통령→현직', color: TIER_COLORS.lv6 },
+    { id: 'x', label: 'X티어', color: TIER_COLORS.x },
+    { id: 'z', label: 'Z티어', color: TIER_COLORS.z },
+  ];
 
-  // Filter recipes by selected tier (result tier)
-  const filteredRecipes = (() => {
-    if (selectedTier === 'all') return ALL_RECIPES;
-    if (selectedTier === 'lv2') return LV1_TO_LV2_RECIPES;
-    if (selectedTier === 'lv3') return LV2_TO_LV3_RECIPES;
-    return [];
-  })();
+  // Get recipes for current selection
+  const getRecipesForTab = (tabId: RecipeTabId) => {
+    if (tabId === 'all') return ALL_RECIPES;
+    return RECIPES_BY_TIER[tabId] || [];
+  };
+
+  // Tier section configuration for rendering
+  const tierSections: { tier: RecipeTabId; from: string; to: string; icon: string }[] = [
+    { tier: 'lv2', from: TIER_NAMES.lv1, to: TIER_NAMES.lv2, icon: '🔹' },
+    { tier: 'lv3', from: TIER_NAMES.lv2, to: TIER_NAMES.lv3, icon: '🔷' },
+    { tier: 'lv4', from: TIER_NAMES.lv3, to: TIER_NAMES.lv4, icon: '🔮' },
+    { tier: 'lv5', from: TIER_NAMES.lv4, to: TIER_NAMES.lv5, icon: '⭐' },
+    { tier: 'lv6', from: TIER_NAMES.lv5, to: TIER_NAMES.lv6, icon: '🔥' },
+    { tier: 'x', from: '', to: TIER_NAMES.x, icon: '💫' },
+    { tier: 'z', from: '', to: TIER_NAMES.z, icon: '✨' },
+  ];
 
   return (
     <>
@@ -512,52 +556,47 @@ export function RecipePanel({ isOpen, onClose, ownedPoliticianIds }: RecipePanel
           <div
             style={{
               display: 'flex',
-              gap: 8,
+              gap: 6,
               padding: '10px 16px',
               borderBottom: '1px solid #333',
               backgroundColor: '#0f0f23',
               flexWrap: 'wrap',
             }}
           >
-            {tiers.map((tier) => (
+            {tabs.map((tab) => (
               <button
-                key={tier}
-                onClick={() => setSelectedTier(tier)}
+                key={tab.id}
+                onClick={() => setSelectedTab(tab.id)}
                 style={{
-                  padding: '6px 14px',
-                  borderRadius: 20,
+                  padding: '5px 10px',
+                  borderRadius: 16,
                   border: 'none',
-                  backgroundColor:
-                    selectedTier === tier
-                      ? tier === 'all'
-                        ? '#666'
-                        : TIER_COLORS[tier as PoliticianTier]
-                      : '#333',
+                  backgroundColor: selectedTab === tab.id ? tab.color : '#333',
                   color: '#fff',
                   cursor: 'pointer',
-                  fontWeight: selectedTier === tier ? 'bold' : 'normal',
-                  fontSize: 12,
+                  fontWeight: selectedTab === tab.id ? 'bold' : 'normal',
+                  fontSize: 11,
                   transition: 'all 0.2s',
                 }}
               >
-                {tier === 'all' ? '전체' : tier === 'lv2' ? '기초→일반' : tier === 'lv3' ? '일반→중진' : TIER_NAMES[tier as PoliticianTier]}
+                {tab.label}
               </button>
             ))}
 
             {/* Legend */}
-            <div style={{ marginLeft: 'auto', display: 'flex', gap: 12, alignItems: 'center' }}>
-              <span style={{ fontSize: 11, color: '#666' }}>정당:</span>
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: 10, alignItems: 'center' }}>
+              <span style={{ fontSize: 10, color: '#666' }}>정당:</span>
               {Object.entries(PARTY_NAMES).map(([key, name]) => (
-                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                   <div
                     style={{
-                      width: 10,
-                      height: 10,
+                      width: 8,
+                      height: 8,
                       borderRadius: '50%',
                       backgroundColor: PARTY_COLORS[key as keyof typeof PARTY_COLORS],
                     }}
                   />
-                  <span style={{ fontSize: 10, color: '#888' }}>{name}</span>
+                  <span style={{ fontSize: 9, color: '#888' }}>{name}</span>
                 </div>
               ))}
             </div>
@@ -571,67 +610,55 @@ export function RecipePanel({ isOpen, onClose, ownedPoliticianIds }: RecipePanel
               padding: 12,
             }}
           >
-            {filteredRecipes.length === 0 ? (
+            {getRecipesForTab(selectedTab).length === 0 ? (
               <div style={{ color: '#666', textAlign: 'center', padding: 40 }}>
                 해당 등급의 조합법이 없습니다.
               </div>
             ) : (
               <>
-                {/* Lv1 → Lv2 section */}
-                {(selectedTier === 'all' || selectedTier === 'lv2') && (
-                  <div style={{ marginBottom: 20 }}>
-                    <h3 style={{ color: TIER_COLORS.lv2, margin: '0 0 10px 0', fontSize: 14 }}>
-                      🔹 {TIER_NAMES.lv1} → {TIER_NAMES.lv2}
-                    </h3>
-                    <div style={{ color: '#888', fontSize: 11, marginBottom: 8 }}>
-                      {TIER_NAMES.lv1} 두 장을 조합하면 27종 {TIER_NAMES.lv2} 중 랜덤 획득
-                    </div>
-                    <div
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                        gap: 8,
-                      }}
-                    >
-                      {LV1_TO_LV2_RECIPES.map((recipe) => (
-                        <RecipeRow
-                          key={recipe.id}
-                          recipe={recipe}
-                          ownedPoliticianIds={ownedPoliticianIds}
-                          onPoliticianClick={setSelectedPolitician}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
+                {tierSections
+                  .filter(section => selectedTab === 'all' || selectedTab === section.tier)
+                  .map((section) => {
+                    const recipes = RECIPES_BY_TIER[section.tier];
+                    if (!recipes || recipes.length === 0) return null;
 
-                {/* Lv2 → Lv3 section */}
-                {(selectedTier === 'all' || selectedTier === 'lv3') && (
-                  <div>
-                    <h3 style={{ color: TIER_COLORS.lv3, margin: '0 0 10px 0', fontSize: 14 }}>
-                      🔷 {TIER_NAMES.lv2} → {TIER_NAMES.lv3}
-                    </h3>
-                    <div style={{ color: '#888', fontSize: 11, marginBottom: 8 }}>
-                      {TIER_NAMES.lv2} 두 장 + {TIER_NAMES.lv1} 한 장 = 특정 {TIER_NAMES.lv3}
-                    </div>
-                    <div
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                        gap: 8,
-                      }}
-                    >
-                      {LV2_TO_LV3_RECIPES.map((recipe) => (
-                        <RecipeRow
-                          key={recipe.id}
-                          recipe={recipe}
-                          ownedPoliticianIds={ownedPoliticianIds}
-                          onPoliticianClick={setSelectedPolitician}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
+                    const tierColor = section.tier === 'x' || section.tier === 'z'
+                      ? TIER_COLORS[section.tier]
+                      : TIER_COLORS[section.tier as PoliticianTier];
+
+                    return (
+                      <div key={section.tier} style={{ marginBottom: 20 }}>
+                        <h3 style={{ color: tierColor, margin: '0 0 10px 0', fontSize: 14 }}>
+                          {section.icon} {section.from ? `${section.from} → ${section.to}` : section.to}
+                        </h3>
+                        <div style={{ color: '#888', fontSize: 11, marginBottom: 8 }}>
+                          {section.tier === 'lv2' && `${TIER_NAMES.lv1} 두 장을 조합하면 27종 ${TIER_NAMES.lv2} 중 랜덤 획득`}
+                          {section.tier === 'lv3' && `${TIER_NAMES.lv2} 2명 + ${TIER_NAMES.lv1} 1명 = ${TIER_NAMES.lv3}`}
+                          {section.tier === 'lv4' && `${TIER_NAMES.lv3} 2명 + ${TIER_NAMES.lv2} 1명 = ${TIER_NAMES.lv4}`}
+                          {section.tier === 'lv5' && `${TIER_NAMES.lv4} 2명 + ${TIER_NAMES.lv3} 1명 = ${TIER_NAMES.lv5}`}
+                          {section.tier === 'lv6' && `${TIER_NAMES.lv5} 2명 + Z티어 1명 = ${TIER_NAMES.lv6}`}
+                          {section.tier === 'x' && '특별 조합으로 획득하는 대선후보 폼'}
+                          {section.tier === 'z' && '특별 조합으로 획득하는 상징 폼'}
+                        </div>
+                        <div
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                            gap: 8,
+                          }}
+                        >
+                          {recipes.map((recipe) => (
+                            <RecipeRow
+                              key={recipe.id}
+                              recipe={recipe}
+                              ownedPoliticianIds={ownedPoliticianIds}
+                              onPoliticianClick={setSelectedPolitician}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
               </>
             )}
           </div>
@@ -639,21 +666,28 @@ export function RecipePanel({ isOpen, onClose, ownedPoliticianIds }: RecipePanel
           {/* Footer - Stats */}
           <div
             style={{
-              padding: '10px 16px',
+              padding: '8px 16px',
               borderTop: '1px solid #333',
               backgroundColor: '#0f0f23',
               color: '#888',
-              fontSize: 11,
+              fontSize: 10,
               textAlign: 'center',
               display: 'flex',
               justifyContent: 'center',
-              gap: 20,
+              gap: 12,
+              flexWrap: 'wrap',
             }}
           >
-            <span>{TIER_NAMES.lv1}: 2명</span>
-            <span>{TIER_NAMES.lv2}: 27명</span>
-            <span>{TIER_NAMES.lv3}: 26명</span>
-            <span>총 조합법: {ALL_RECIPES.length}개</span>
+            <span>총 {ALL_POLITICIANS.length}명</span>
+            <span>조합법 {ALL_RECIPES.length}개</span>
+            <span style={{ color: '#666' }}>|</span>
+            <span>Lv2: {RECIPES_BY_TIER.lv2.length}</span>
+            <span>Lv3: {RECIPES_BY_TIER.lv3.length}</span>
+            <span>Lv4: {RECIPES_BY_TIER.lv4.length}</span>
+            <span>Lv5: {RECIPES_BY_TIER.lv5.length}</span>
+            <span>Lv6: {RECIPES_BY_TIER.lv6.length}</span>
+            <span>X: {RECIPES_BY_TIER.x.length}</span>
+            <span>Z: {RECIPES_BY_TIER.z.length}</span>
           </div>
         </div>
       </div>

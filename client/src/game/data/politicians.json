@@ -89,5 +89,66 @@
       { "id": "han_changmin", "name": "한창민", "terms": 2, "committee": "교육위", "partyDetail": "무소속", "role": "buffer", "attack": 24, "defense": 23, "hp": 155, "description": "2선 의원. 무소속.", "color": "#6B7280", "hasSkill": true, "skillName": "중립외교", "skillDescription": "아군·적군 모두의 방어력 5% 감소" },
       { "id": "woo_wonsik", "name": "우원식", "terms": 5, "committee": "국회의장", "partyDetail": "더불어민주당", "role": "hold", "attack": 18, "defense": 32, "hp": 200, "description": "5선 의원. 국회의장.", "color": "#1D4ED8", "hasSkill": true, "skillName": "의장권한", "skillDescription": "자신의 HP 30% 증가, 방어력 20% 증가" }
     ]
-  }
+  },
+  "lv4": {
+    "kuk": [
+      { "id": "oh_sehoon", "name": "오세훈", "role": "economy", "attack": 38, "defense": 32, "hp": 220, "description": "서울시장. 행정 경험 풍부.", "color": "#DC2626", "hasSkill": true, "skillName": "수도행정", "skillDescription": "아군 경제 유닛 효율 20% 증가" },
+      { "id": "hong_junpyo", "name": "홍준표", "role": "line_dps", "attack": 45, "defense": 28, "hp": 200, "description": "대구시장. 강경 보수의 상징.", "color": "#B91C1C", "hasSkill": true, "skillName": "돌직구", "skillDescription": "크리티컬 확률 25% 증가" },
+      { "id": "han_donghoon", "name": "한동훈", "role": "debuffer", "attack": 42, "defense": 30, "hp": 210, "description": "전 법무부장관. 검찰 출신.", "color": "#EF4444", "hasSkill": true, "skillName": "법리공세", "skillDescription": "적 보스 방어력 25% 감소" },
+      { "id": "hwang_kyoahn", "name": "황교안", "role": "hold", "attack": 30, "defense": 42, "hp": 260, "description": "전 국무총리. 탄핵 시기 대통령 권한대행.", "color": "#991B1B", "hasSkill": true, "skillName": "권한대행", "skillDescription": "자신의 방어력 30% 증가" },
+      { "id": "won_heeryong", "name": "원희룡", "role": "economy", "attack": 36, "defense": 34, "hp": 225, "description": "전 국토부장관. 제주지사 역임.", "color": "#DC2626", "hasSkill": true, "skillName": "국토개발", "skillDescription": "골드 획득량 20% 증가" },
+      { "id": "yoo_seungmin", "name": "유승민", "role": "buffer", "attack": 35, "defense": 35, "hp": 230, "description": "전 의원. 바른정당 창당.", "color": "#F87171", "hasSkill": true, "skillName": "정책통", "skillDescription": "아군 전체 공격력 12% 증가" }
+    ],
+    "min": [
+      { "id": "lee_nakyeon", "name": "이낙연", "role": "buffer", "attack": 35, "defense": 38, "hp": 240, "description": "전 국무총리. 민주당 전 대표.", "color": "#1E40AF", "hasSkill": true, "skillName": "국정조율", "skillDescription": "아군 전체 방어력 15% 증가" },
+      { "id": "kim_dongyeon", "name": "김동연", "role": "economy", "attack": 34, "defense": 36, "hp": 235, "description": "경기도지사. 전 경제부총리.", "color": "#1D4ED8", "hasSkill": true, "skillName": "경제정책", "skillDescription": "골드 획득량 25% 증가" },
+      { "id": "lee_haechan", "name": "이해찬", "role": "buffer", "attack": 33, "defense": 37, "hp": 245, "description": "전 민주당 대표. 6선 의원.", "color": "#2563EB", "hasSkill": true, "skillName": "당무장악", "skillDescription": "아군 민주당 유닛 공격력 20% 증가" },
+      { "id": "im_jongseok", "name": "임종석", "role": "debuffer", "attack": 40, "defense": 32, "hp": 215, "description": "전 대통령비서실장. 86세대 대표.", "color": "#3B82F6", "hasSkill": true, "skillName": "비서실력", "skillDescription": "적 디버프 효과 30% 증가" },
+      { "id": "song_younggil", "name": "송영길", "role": "line_dps", "attack": 42, "defense": 30, "hp": 205, "description": "전 민주당 대표. 인천시장 역임.", "color": "#60A5FA", "hasSkill": true, "skillName": "돌파력", "skillDescription": "첫 공격 데미지 60% 증가" },
+      { "id": "cho_kuk", "name": "조국", "role": "debuffer", "attack": 44, "defense": 28, "hp": 195, "description": "조국혁신당 대표. 전 법무부장관.", "color": "#10B981", "hasSkill": true, "skillName": "검찰개혁", "skillDescription": "적 보스 공격력 30% 감소" }
+    ],
+    "minor": [
+      { "id": "ahn_cheolsu", "name": "안철수", "role": "buffer", "attack": 36, "defense": 36, "hp": 235, "description": "국민의당 창당자. IT 기업가 출신.", "color": "#22C55E", "hasSkill": true, "skillName": "제3지대", "skillDescription": "중립 유닛 공격력 25% 증가" },
+      { "id": "kim_jongin", "name": "김종인", "role": "buffer", "attack": 32, "defense": 40, "hp": 250, "description": "비대위원장 전문. 경제학자.", "color": "#6B7280", "hasSkill": true, "skillName": "비대위력", "skillDescription": "위기 시 아군 전체 스탯 15% 증가" },
+      { "id": "kim_jongpil", "name": "김종필", "role": "hold", "attack": 28, "defense": 45, "hp": 280, "description": "JP. 삼김시대의 한 축. 전 국무총리.", "color": "#78716C", "hasSkill": true, "skillName": "삼김연대", "skillDescription": "자신의 HP 40% 증가" },
+      { "id": "ban_kimoon", "name": "반기문", "role": "debuffer", "attack": 35, "defense": 38, "hp": 240, "description": "전 유엔 사무총장.", "color": "#0EA5E9", "hasSkill": true, "skillName": "외교력", "skillDescription": "적 전체 방어력 10% 감소" },
+      { "id": "sim_sangjung", "name": "심상정", "role": "line_dps", "attack": 40, "defense": 32, "hp": 210, "description": "전 정의당 대표. 진보 정치의 상징.", "color": "#FBBF24", "hasSkill": true, "skillName": "진보투쟁", "skillDescription": "공격 시 20% 확률로 2배 데미지" },
+      { "id": "park_jiwon_lv4", "name": "박지원", "role": "debuffer", "attack": 38, "defense": 34, "hp": 225, "description": "호남 정치 거물. 정보위원장 역임.", "color": "#1E3A8A", "hasSkill": true, "skillName": "정보전", "skillDescription": "적 회피율 50% 감소" }
+    ]
+  },
+  "lv5": [
+    { "id": "rhee_syngman", "name": "이승만", "role": "hold", "attack": 40, "defense": 50, "hp": 350, "description": "초대 대통령. 대한민국 건국.", "color": "#78716C", "hasSkill": true, "skillName": "건국", "skillDescription": "아군 전체 HP 20% 증가" },
+    { "id": "park_chunghee", "name": "박정희", "role": "economy", "attack": 55, "defense": 45, "hp": 320, "description": "경제개발의 주역. 18년 장기집권.", "color": "#365314", "hasSkill": true, "skillName": "경제개발", "skillDescription": "골드 획득량 40% 증가" },
+    { "id": "kim_youngsam", "name": "김영삼", "role": "debuffer", "attack": 48, "defense": 42, "hp": 300, "description": "문민정부. 금융실명제 도입.", "color": "#1D4ED8", "hasSkill": true, "skillName": "금융실명", "skillDescription": "적 경제 유닛 효율 50% 감소" },
+    { "id": "kim_daejung", "name": "김대중", "role": "buffer", "attack": 45, "defense": 48, "hp": 330, "description": "국민의 정부. 노벨평화상 수상.", "color": "#1E40AF", "hasSkill": true, "skillName": "햇볕정책", "skillDescription": "아군 전체 공격력 20% 증가" },
+    { "id": "roh_moohyun", "name": "노무현", "role": "line_dps", "attack": 52, "defense": 40, "hp": 290, "description": "참여정부. 인권변호사 출신.", "color": "#FBBF24", "hasSkill": true, "skillName": "참여민주", "skillDescription": "크리티컬 데미지 50% 증가" },
+    { "id": "roh_taewoo", "name": "노태우", "role": "hold", "attack": 42, "defense": 48, "hp": 340, "description": "민주화 선언. 북방외교.", "color": "#DC2626", "hasSkill": true, "skillName": "북방외교", "skillDescription": "자신의 방어력 35% 증가" },
+    { "id": "lee_myungbak", "name": "이명박", "role": "economy", "attack": 50, "defense": 44, "hp": 310, "description": "CEO 대통령. 4대강 사업.", "color": "#B91C1C", "hasSkill": true, "skillName": "토건경제", "skillDescription": "건물 건설 비용 30% 감소" },
+    { "id": "park_geunhye", "name": "박근혜", "role": "hold", "attack": 44, "defense": 46, "hp": 325, "description": "첫 여성 대통령. 탄핵으로 파면.", "color": "#EF4444", "hasSkill": true, "skillName": "불통리더십", "skillDescription": "디버프 저항 50%" },
+    { "id": "moon_jaein", "name": "문재인", "role": "buffer", "attack": 46, "defense": 46, "hp": 320, "description": "촛불정부. 노무현의 후계자.", "color": "#1E40AF", "hasSkill": true, "skillName": "촛불정신", "skillDescription": "아군 민주당 유닛 전체 스탯 15% 증가" },
+    { "id": "yoon_seokyeol", "name": "윤석열", "role": "debuffer", "attack": 48, "defense": 44, "hp": 315, "description": "검찰총장 출신 대통령.", "color": "#DC2626", "hasSkill": true, "skillName": "검찰권력", "skillDescription": "적 보스 전체 스탯 20% 감소" }
+  ],
+  "lv6": [
+    { "id": "lee_jaemyung", "name": "이재명", "role": "line_dps", "attack": 65, "defense": 55, "hp": 400, "description": "현 민주당 대표. 성남시장·경기지사 역임.", "color": "#1E40AF", "hasSkill": true, "skillName": "기본주택", "skillDescription": "아군 전체 HP 30% 증가, 공격력 25% 증가" }
+  ],
+  "x_tier": [
+    { "id": "x_heo_kyungyoung", "name": "허경영", "partyDetail": "국가혁명당", "role": "buffer", "attack": 30, "defense": 60, "hp": 500, "description": "영원한 대선 도전자.", "color": "#EC4899", "hasSkill": true, "skillName": "하늘궁", "skillDescription": "랜덤 버프 3개 적용" },
+    { "id": "x_ahn_cheolsu", "name": "안철수(대선)", "partyDetail": "국민의당", "role": "buffer", "attack": 50, "defense": 50, "hp": 380, "description": "영원한 대선 후보. 단일화의 달인.", "color": "#22C55E", "hasSkill": true, "skillName": "단일화", "skillDescription": "아군 중립 유닛과 합체하여 스탯 합산" },
+    { "id": "x_lee_junseok", "name": "이준석(도전)", "partyDetail": "개혁신당", "role": "line_dps", "attack": 55, "defense": 40, "hp": 320, "description": "MZ세대 정치 아이콘.", "color": "#8B5CF6", "hasSkill": true, "skillName": "SNS폭풍", "skillDescription": "광역 공격, 적 5명에게 70% 데미지" },
+    { "id": "x_sim_sangjung", "name": "심상정(대선)", "partyDetail": "정의당", "role": "line_dps", "attack": 52, "defense": 45, "hp": 340, "description": "진보 진영 대선 후보.", "color": "#FBBF24", "hasSkill": true, "skillName": "진보의횃불", "skillDescription": "공격 시 30% 확률로 3배 데미지" },
+    { "id": "x_kim_moonsu", "name": "김문수(대선)", "partyDetail": "국민의힘", "role": "economy", "attack": 45, "defense": 48, "hp": 360, "description": "노동운동가에서 보수로.", "color": "#DC2626", "hasSkill": true, "skillName": "전향", "skillDescription": "적군 1명을 아군으로 전환" },
+    { "id": "x_jung_jooyoung", "name": "정주영(대선)", "partyDetail": "통일국민당", "role": "economy", "attack": 48, "defense": 50, "hp": 380, "description": "현대그룹 창업자. 92년 대선 출마.", "color": "#0EA5E9", "hasSkill": true, "skillName": "소떼방북", "skillDescription": "골드 획득량 50% 증가" },
+    { "id": "x_hong_junpyo", "name": "홍준표(대선)", "partyDetail": "자유한국당", "role": "line_dps", "attack": 58, "defense": 42, "hp": 330, "description": "2017 대선 후보. 강경 보수.", "color": "#B91C1C", "hasSkill": true, "skillName": "막말포격", "skillDescription": "적 전체에게 40% 데미지" },
+    { "id": "x_lee_hoechang", "name": "이회창(대선)", "partyDetail": "한나라당", "role": "hold", "attack": 40, "defense": 55, "hp": 400, "description": "두 번의 대선 패배. 원칙주의자.", "color": "#78716C", "hasSkill": true, "skillName": "원칙고수", "skillDescription": "자신의 방어력 50% 증가" }
+  ],
+  "z_tier": [
+    { "id": "z_jp", "name": "JP(삼김)", "role": "hold", "attack": 45, "defense": 60, "hp": 450, "description": "삼김시대의 조정자. 정치 9단.", "color": "#78716C", "hasSkill": true, "skillName": "정치9단", "skillDescription": "아군 전체 스탯 20% 증가" },
+    { "id": "z_im_jongseok", "name": "학생운동 임종석", "role": "line_dps", "attack": 60, "defense": 35, "hp": 300, "description": "86세대 학생운동 시절.", "color": "#DC2626", "hasSkill": true, "skillName": "민주화투쟁", "skillDescription": "공격력 50% 증가, 방어력 20% 감소" },
+    { "id": "z_moon_jaein", "name": "인권변호사 문재인", "role": "buffer", "attack": 48, "defense": 52, "hp": 380, "description": "노무현과 함께한 인권변호사 시절.", "color": "#FBBF24", "hasSkill": true, "skillName": "인권수호", "skillDescription": "아군 HP 회복 효과 50% 증가" },
+    { "id": "z_kim_moonsu", "name": "노동투사 김문수", "role": "line_dps", "attack": 55, "defense": 40, "hp": 320, "description": "노동운동가 시절의 김문수.", "color": "#EF4444", "hasSkill": true, "skillName": "노동투쟁", "skillDescription": "공격 시 25% 확률로 2배 데미지" },
+    { "id": "z_cho_kuk", "name": "검찰개혁 조국", "role": "debuffer", "attack": 58, "defense": 42, "hp": 340, "description": "검찰개혁의 상징.", "color": "#10B981", "hasSkill": true, "skillName": "검찰척결", "skillDescription": "적 보스 전체 스탯 35% 감소" },
+    { "id": "z_kim_gu", "name": "김구", "role": "buffer", "attack": 50, "defense": 55, "hp": 420, "description": "대한민국 임시정부 주석.", "color": "#1E3A8A", "hasSkill": true, "skillName": "독립정신", "skillDescription": "아군 전체 공격력 30% 증가" },
+    { "id": "z_ahn_junggeun", "name": "안중근", "role": "line_dps", "attack": 70, "defense": 30, "hp": 280, "description": "이토 히로부미를 처단한 독립투사.", "color": "#1E40AF", "hasSkill": true, "skillName": "의거", "skillDescription": "적 보스에게 100% 추가 데미지" },
+    { "id": "z_roh_moohyun", "name": "변호사 노무현", "role": "debuffer", "attack": 52, "defense": 48, "hp": 360, "description": "인권변호사 시절의 노무현.", "color": "#FBBF24", "hasSkill": true, "skillName": "변론", "skillDescription": "적 디버프 저항 무시" }
+  ]
 }

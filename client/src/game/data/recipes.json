@@ -52,5 +52,66 @@
       { "id": "recipe_han_changmin", "materials": ["kim_youngjin", "sung_iljong", "L1_DM"], "result": "han_changmin" },
       { "id": "recipe_woo_wonsik", "materials": ["kim_youngho", "song_seokjun", "L1_DM"], "result": "woo_wonsik" }
     ]
-  }
+  },
+  "lv3_to_lv4": {
+    "kuk": [
+      { "id": "recipe_oh_sehoon", "materials": ["kwon_sungdong", "ju_hoyoung", "kim_seokki"], "result": "oh_sehoon" },
+      { "id": "recipe_hong_junpyo", "materials": ["kim_kihyeon", "yoon_sanghyeon", "song_seokjun"], "result": "hong_junpyo" },
+      { "id": "recipe_han_donghoon", "materials": ["kwon_sungdong", "kwon_youngsae", "kim_jungjae"], "result": "han_donghoon" },
+      { "id": "recipe_hwang_kyoahn", "materials": ["cho_kyungtae", "na_kyungwon", "im_ija"], "result": "hwang_kyoahn" },
+      { "id": "recipe_won_heeryong", "materials": ["ju_hoyoung", "cho_baesuk", "kim_sungwon"], "result": "won_heeryong" },
+      { "id": "recipe_yoo_seungmin", "materials": ["na_kyungwon", "kim_kihyeon", "yoon_hanhong"], "result": "yoo_seungmin" }
+    ],
+    "min": [
+      { "id": "recipe_lee_nakyeon", "materials": ["kim_taenyeon", "yoon_hojung", "kwon_chilseung"], "result": "lee_nakyeon" },
+      { "id": "recipe_kim_dongyeon", "materials": ["jung_sungho", "cho_jungsik", "kim_sunghwan"], "result": "kim_dongyeon" },
+      { "id": "recipe_lee_haechan", "materials": ["kim_taenyeon", "park_honggeun", "park_jumin"], "result": "lee_haechan" },
+      { "id": "recipe_im_jongseok", "materials": ["lee_inyoung", "jung_dongyoung", "kim_byungki"], "result": "im_jongseok" },
+      { "id": "recipe_song_younggil", "materials": ["yoon_hojung", "jung_chungrae", "maeng_sunggyu"], "result": "song_younggil" },
+      { "id": "recipe_cho_kuk", "materials": ["chu_miae", "jung_chungrae", "park_jumin"], "result": "cho_kuk" }
+    ],
+    "minor": [
+      { "id": "recipe_ahn_cheolsu", "materials": ["lee_junseok", "na_kyungwon", "kim_heejung"], "result": "ahn_cheolsu" },
+      { "id": "recipe_kim_jongin", "materials": ["kwon_sungdong", "kim_taenyeon", "sung_iljong"], "result": "kim_jongin" },
+      { "id": "recipe_kim_jongpil", "materials": ["cho_kyungtae", "seo_younggyo", "kim_youngjin"], "result": "kim_jongpil" },
+      { "id": "recipe_ban_kimoon", "materials": ["kwon_youngsae", "lee_inyoung", "kim_gyoheung"], "result": "ban_kimoon" },
+      { "id": "recipe_sim_sangjung", "materials": ["yoon_jongo", "hwang_unha", "kim_jungho"], "result": "sim_sangjung" },
+      { "id": "recipe_park_jiwon_lv4", "materials": ["park_jiwon", "jung_dongyoung", "park_chandae"], "result": "park_jiwon_lv4" }
+    ]
+  },
+  "lv4_to_lv5": [
+    { "id": "recipe_rhee_syngman", "materials": ["kim_jongpil", "hwang_kyoahn", "cho_kyungtae"], "result": "rhee_syngman" },
+    { "id": "recipe_park_chunghee", "materials": ["kim_jongpil", "oh_sehoon", "kwon_sungdong"], "result": "park_chunghee" },
+    { "id": "recipe_kim_youngsam", "materials": ["kim_jongpil", "yoo_seungmin", "kim_kihyeon"], "result": "kim_youngsam" },
+    { "id": "recipe_kim_daejung", "materials": ["park_jiwon_lv4", "kim_dongyeon", "park_honggeun"], "result": "kim_daejung" },
+    { "id": "recipe_roh_moohyun", "materials": ["lee_haechan", "im_jongseok", "jung_chungrae"], "result": "roh_moohyun" },
+    { "id": "recipe_roh_taewoo", "materials": ["hong_junpyo", "won_heeryong", "yoon_sanghyeon"], "result": "roh_taewoo" },
+    { "id": "recipe_lee_myungbak", "materials": ["oh_sehoon", "won_heeryong", "ju_hoyoung"], "result": "lee_myungbak" },
+    { "id": "recipe_park_geunhye", "materials": ["hwang_kyoahn", "na_kyungwon", "cho_kyungtae"], "result": "park_geunhye" },
+    { "id": "recipe_moon_jaein", "materials": ["lee_nakyeon", "im_jongseok", "kim_taenyeon"], "result": "moon_jaein" },
+    { "id": "recipe_yoon_seokyeol", "materials": ["han_donghoon", "kim_jongin", "kwon_youngsae"], "result": "yoon_seokyeol" }
+  ],
+  "lv5_to_lv6": [
+    { "id": "recipe_lee_jaemyung", "materials": ["moon_jaein", "yoon_seokyeol", "z_cho_kuk"], "result": "lee_jaemyung" }
+  ],
+  "to_x_tier": [
+    { "id": "recipe_x_heo_kyungyoung", "materials": ["rhee_syngman", "L1_KH", "han_changmin"], "result": "x_heo_kyungyoung" },
+    { "id": "recipe_x_ahn_cheolsu", "materials": ["ahn_cheolsu", "moon_jaein", "yoon_seokyeol"], "result": "x_ahn_cheolsu" },
+    { "id": "recipe_x_lee_junseok", "materials": ["lee_junseok", "kim_jongin", "han_donghoon"], "result": "x_lee_junseok" },
+    { "id": "recipe_x_sim_sangjung", "materials": ["sim_sangjung", "roh_moohyun", "yoon_jongo"], "result": "x_sim_sangjung" },
+    { "id": "recipe_x_kim_moonsu", "materials": ["yoon_seokyeol", "hong_junpyo", "yoon_sanghyeon"], "result": "x_kim_moonsu" },
+    { "id": "recipe_x_jung_jooyoung", "materials": ["park_chunghee", "lee_myungbak", "oh_sehoon"], "result": "x_jung_jooyoung" },
+    { "id": "recipe_x_hong_junpyo", "materials": ["hong_junpyo", "park_geunhye", "kim_kihyeon"], "result": "x_hong_junpyo" },
+    { "id": "recipe_x_lee_hoechang", "materials": ["kim_youngsam", "roh_taewoo", "yoo_seungmin"], "result": "x_lee_hoechang" }
+  ],
+  "to_z_tier": [
+    { "id": "recipe_z_jp", "materials": ["kim_jongpil", "kim_youngsam", "kim_daejung"], "result": "z_jp" },
+    { "id": "recipe_z_im_jongseok", "materials": ["im_jongseok", "lee_inyoung", "jung_dongyoung"], "result": "z_im_jongseok" },
+    { "id": "recipe_z_moon_jaein", "materials": ["moon_jaein", "roh_moohyun", "park_jumin"], "result": "z_moon_jaein" },
+    { "id": "recipe_z_kim_moonsu", "materials": ["x_kim_moonsu", "yoon_jongo", "park_jung"], "result": "z_kim_moonsu" },
+    { "id": "recipe_z_cho_kuk", "materials": ["cho_kuk", "chu_miae", "hwang_unha"], "result": "z_cho_kuk" },
+    { "id": "recipe_z_kim_gu", "materials": ["kim_daejung", "lee_inyoung", "jung_dongyoung"], "result": "z_kim_gu" },
+    { "id": "recipe_z_ahn_junggeun", "materials": ["z_kim_gu", "ahn_gyubaek", "kwon_youngsae"], "result": "z_ahn_junggeun" },
+    { "id": "recipe_z_roh_moohyun", "materials": ["roh_moohyun", "lee_haechan", "park_jiwon_lv4"], "result": "z_roh_moohyun" }
+  ]
 }

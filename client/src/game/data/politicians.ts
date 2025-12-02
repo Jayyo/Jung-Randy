@@ -6,7 +6,7 @@ import recipesData from './recipes.json';
 
 // ===== TYPE DEFINITIONS =====
 export type Party = 'kuk' | 'min' | 'minor' | 'independent';
-export type PoliticianTier = 'lv1' | 'lv2' | 'lv3';
+export type PoliticianTier = 'lv1' | 'lv2' | 'lv3' | 'lv4' | 'lv5' | 'lv6' | 'x' | 'z';
 
 export interface Politician {
   id: string;
@@ -40,18 +40,33 @@ export const TIER_COLORS: Record<PoliticianTier, string> = {
   lv1: '#9ca3af',
   lv2: '#22c55e',
   lv3: '#3b82f6',
+  lv4: '#a855f7',
+  lv5: '#f59e0b',
+  lv6: '#ef4444',
+  x: '#ec4899',
+  z: '#06b6d4',
 };
 
 export const TIER_BG_COLORS: Record<PoliticianTier, string> = {
   lv1: '#374151',
   lv2: '#14532d',
   lv3: '#1e3a5f',
+  lv4: '#581c87',
+  lv5: '#78350f',
+  lv6: '#7f1d1d',
+  x: '#831843',
+  z: '#164e63',
 };
 
 export const TIER_NAMES: Record<PoliticianTier, string> = {
   lv1: '기초 지지층',
   lv2: '일반 의원',
   lv3: '핵심 중진',
+  lv4: '원외 거물',
+  lv5: '대통령',
+  lv6: '현직 대통령',
+  x: '대선 조커',
+  z: '상징 조커',
 };
 
 export const PARTY_COLORS: Record<Party, string> = {
@@ -139,6 +154,83 @@ function loadPoliticians(): Politician[] {
     });
   }
 
+  // Lv4 - kuk
+  for (const p of politiciansData.lv4.kuk) {
+    result.push({
+      ...p,
+      tier: 'lv4' as PoliticianTier,
+      party: 'kuk' as Party,
+      modelPath: DUMMY_MODEL,
+      description: p.description || '',
+    });
+  }
+
+  // Lv4 - min
+  for (const p of politiciansData.lv4.min) {
+    result.push({
+      ...p,
+      tier: 'lv4' as PoliticianTier,
+      party: 'min' as Party,
+      modelPath: DUMMY_MODEL,
+      description: p.description || '',
+    });
+  }
+
+  // Lv4 - minor
+  for (const p of politiciansData.lv4.minor) {
+    result.push({
+      ...p,
+      tier: 'lv4' as PoliticianTier,
+      party: 'minor' as Party,
+      modelPath: DUMMY_MODEL,
+      description: p.description || '',
+    });
+  }
+
+  // Lv5 (presidents)
+  for (const p of politiciansData.lv5) {
+    result.push({
+      ...p,
+      tier: 'lv5' as PoliticianTier,
+      party: 'independent' as Party,
+      modelPath: DUMMY_MODEL,
+      description: p.description || '',
+    });
+  }
+
+  // Lv6
+  for (const p of politiciansData.lv6) {
+    result.push({
+      ...p,
+      tier: 'lv6' as PoliticianTier,
+      party: 'min' as Party,
+      modelPath: DUMMY_MODEL,
+      description: p.description || '',
+    });
+  }
+
+  // X-tier
+  for (const p of politiciansData.x_tier) {
+    result.push({
+      ...p,
+      tier: 'x' as PoliticianTier,
+      party: 'minor' as Party,
+      modelPath: DUMMY_MODEL,
+      description: p.description || '',
+    });
+  }
+
+  // Z-tier
+  for (const p of politiciansData.z_tier) {
+    result.push({
+      ...p,
+      tier: 'z' as PoliticianTier,
+      party: 'independent' as Party,
+      modelPath: DUMMY_MODEL,
+      description: p.description || '',
+    });
+  }
+
   return result;
 }
 
@@ -177,6 +269,37 @@ function loadRecipes(): PoliticianRecipe[] {
     result.push({ id: r.id, materials: r.materials, result: r.result });
   }
 
+  // Lv3 to Lv4 recipes
+  for (const r of recipesData.lv3_to_lv4.kuk) {
+    result.push({ id: r.id, materials: r.materials, result: r.result });
+  }
+  for (const r of recipesData.lv3_to_lv4.min) {
+    result.push({ id: r.id, materials: r.materials, result: r.result });
+  }
+  for (const r of recipesData.lv3_to_lv4.minor) {
+    result.push({ id: r.id, materials: r.materials, result: r.result });
+  }
+
+  // Lv4 to Lv5 recipes
+  for (const r of recipesData.lv4_to_lv5) {
+    result.push({ id: r.id, materials: r.materials, result: r.result });
+  }
+
+  // Lv5 to Lv6 recipes
+  for (const r of recipesData.lv5_to_lv6) {
+    result.push({ id: r.id, materials: r.materials, result: r.result });
+  }
+
+  // X-tier recipes
+  for (const r of recipesData.to_x_tier) {
+    result.push({ id: r.id, materials: r.materials, result: r.result });
+  }
+
+  // Z-tier recipes
+  for (const r of recipesData.to_z_tier) {
+    result.push({ id: r.id, materials: r.materials, result: r.result });
+  }
+
   return result;
 }
 
@@ -188,6 +311,11 @@ export const ALL_RECIPES: PoliticianRecipe[] = loadRecipes();
 export const LV1_POLITICIANS = ALL_POLITICIANS.filter(p => p.tier === 'lv1');
 export const LV2_POLITICIANS = ALL_POLITICIANS.filter(p => p.tier === 'lv2');
 export const LV3_POLITICIANS = ALL_POLITICIANS.filter(p => p.tier === 'lv3');
+export const LV4_POLITICIANS = ALL_POLITICIANS.filter(p => p.tier === 'lv4');
+export const LV5_POLITICIANS = ALL_POLITICIANS.filter(p => p.tier === 'lv5');
+export const LV6_POLITICIANS = ALL_POLITICIANS.filter(p => p.tier === 'lv6');
+export const X_POLITICIANS = ALL_POLITICIANS.filter(p => p.tier === 'x');
+export const Z_POLITICIANS = ALL_POLITICIANS.filter(p => p.tier === 'z');
 
 // ===== HELPER FUNCTIONS =====
 export function getPoliticianById(id: string): Politician | undefined {
