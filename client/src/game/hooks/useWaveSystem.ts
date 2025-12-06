@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import * as THREE from 'three';
 import { MonsterData, GameState, SelectionTarget } from '../types';
-import { LANE_OFFSET } from '../constants';
+import { LANE_OFFSET, BOSS_PLATFORM_X, WORLD_BOSS_SCALE_MULTIPLIER } from '../constants';
 import {
   getMonsterStatsForWave,
   WAVE_CONFIG,
@@ -12,6 +12,7 @@ import {
   WAVE_SPAWN_DURATION_MS,
   WAVE_TOTAL_DURATION_MS,
   MAX_ACTIVE_MONSTERS,
+  ROUND_SCALING_CONFIG,
 } from '../gameData';
 import { startWaveTickers, scheduleWaveEnd } from '../controllers/waveController';
 
@@ -36,6 +37,7 @@ interface UseWaveSystemReturn {
   handleAttackMonster: (attackerId: string, monsterId: string, damage: number) => void;
   handleStart: (preload?: () => Promise<void>) => Promise<void>;
   handleRestart: () => void;
+  handleSkipWave: () => void;
 }
 
 export function useWaveSystem(selectionTarget: SelectionTarget, setSelectionTarget: (target: SelectionTarget) => void): UseWaveSystemReturn {
@@ -59,23 +61,31 @@ export function useWaveSystem(selectionTarget: SelectionTarget, setSelectionTarg
   const waveTickerRef = useRef<{ stop: () => void } | null>(null);
   const waveStartTimeRef = useRef<number>(0);
   const waveTransitioningRef = useRef(false);
+  const worldBossIdRef = useRef<string | null>(null);
+  const worldBossDeadlineWaveRef = useRef<number | null>(null);
 
   // Create a monster with wave-based stats
-  const createMonster = useCallback((wave: number, isBoss: boolean = false): MonsterData => {
+  const createMonster = useCallback((wave: number, isBoss: boolean = false, options?: { isWorldBoss?: boolean }): MonsterData => {
     const stats = getMonsterStatsForWave(wave);
     const id = isBoss ? `boss-${monsterIdCounterRef.current++}` : `monster-${monsterIdCounterRef.current++}`;
-    monsterPosRefs.current.set(id, new THREE.Vector3(-LANE_OFFSET, 0, -LANE_OFFSET));
+    const isWorldBoss = options?.isWorldBoss ?? false;
+    const startPos = isWorldBoss
+      ? new THREE.Vector3(BOSS_PLATFORM_X, 0, 0)
+      : new THREE.Vector3(-LANE_OFFSET, 0, -LANE_OFFSET);
+    monsterPosRefs.current.set(id, startPos);
+
     return {
       id,
-      hp: stats.hp,
-      maxHp: stats.hp,
-      defense: stats.defense,
+      hp: isWorldBoss ? stats.hp * (ROUND_SCALING_CONFIG.worldBossHpMultiplier ?? 15) : stats.hp,
+      maxHp: isWorldBoss ? stats.hp * (ROUND_SCALING_CONFIG.worldBossHpMultiplier ?? 15) : stats.hp,
+      defense: isWorldBoss ? stats.defense * (ROUND_SCALING_CONFIG.worldBossDefenseMultiplier ?? 7) : stats.defense,
       damage: stats.damage,
       wave,
-      sizeMultiplier: stats.sizeMultiplier,
+      sizeMultiplier: isWorldBoss ? stats.sizeMultiplier * WORLD_BOSS_SCALE_MULTIPLIER : stats.sizeMultiplier,
       progress: 0,
       isDying: false,
       isBoss,
+      isWorldBoss,
     };
   }, []);
 
@@ -128,10 +138,13 @@ export function useWaveSystem(selectionTarget: SelectionTarget, setSelectionTarg
     waveEndCancelRef.current = scheduleWaveEnd(WAVE_TOTAL_DURATION_MS, startNextWave);
 
     if (isBoss) {
-      // Boss wave: spawn only 1 boss monster
-      const bossMonster = createMonster(currentWave, true);
-      setMonsters(prev => [...prev, bossMonster]);
-      setMonstersSpawnedInWave(1);
+      // Boss wave: spawn lane boss + world boss on platform
+      const laneBoss = createMonster(currentWave, true, { isWorldBoss: false });
+      const bossMonster = createMonster(currentWave, true, { isWorldBoss: true });
+      worldBossIdRef.current = bossMonster.id;
+      worldBossDeadlineWaveRef.current = currentWave + 5; // must kill within 5 waves
+      setMonsters(prev => [...prev, laneBoss, bossMonster]);
+      setMonstersSpawnedInWave(2);
     } else {
       // Normal wave: spawn regular monsters
       const monstersForThisWave = getMonstersPerWave(currentWave);
@@ -185,6 +198,23 @@ export function useWaveSystem(selectionTarget: SelectionTarget, setSelectionTarg
     }
   }, [monsters.length, gameState]);
 
+  // World boss defeat deadline (5 waves window)
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+    if (!worldBossIdRef.current || worldBossDeadlineWaveRef.current === null) return;
+
+    const bossAlive = monsters.some(m => m.id === worldBossIdRef.current && !m.isDying);
+    if (!bossAlive) {
+      worldBossIdRef.current = null;
+      worldBossDeadlineWaveRef.current = null;
+      return;
+    }
+
+    if (currentWave > worldBossDeadlineWaveRef.current) {
+      setGameState('gameover');
+    }
+  }, [monsters, currentWave, gameState]);
+
   // Attack monster (called when character attack animation finishes)
   const handleAttackMonster = useCallback((_attackerId: string, monsterId: string, damage: number) => {
     setMonsters(prev => prev.map(m => {
@@ -203,6 +233,11 @@ export function useWaveSystem(selectionTarget: SelectionTarget, setSelectionTarg
     monsterPosRefs.current.delete(id);
     setMonstersKilledInWave(prev => prev + 1);
     setTotalMonstersKilled(prev => prev + 1);
+
+    if (worldBossIdRef.current === id) {
+      worldBossIdRef.current = null;
+      worldBossDeadlineWaveRef.current = null;
+    }
 
     // If the dead monster was selected, clear selection
     if (selectionTarget?.type === 'monster' && selectionTarget.id === id) {
@@ -234,6 +269,8 @@ export function useWaveSystem(selectionTarget: SelectionTarget, setSelectionTarg
     setMonsters([]);
     monsterPosRefs.current.clear();
     monsterIdCounterRef.current = 0;
+    worldBossIdRef.current = null;
+    worldBossDeadlineWaveRef.current = null;
   }, []);
 
   // Start game from lobby
@@ -256,6 +293,39 @@ export function useWaveSystem(selectionTarget: SelectionTarget, setSelectionTarg
     handleStart();
   }, [handleStart]);
 
+  // Debug: Skip to next wave (dev use)
+  const handleSkipWave = useCallback(() => {
+    if (gameState !== 'playing') return;
+    setMonsters([]);
+    monsterPosRefs.current.clear();
+    if (spawnTimerRef.current) {
+      clearTimeout(spawnTimerRef.current);
+      spawnTimerRef.current = null;
+    }
+    if (waveEndCancelRef.current) {
+      waveEndCancelRef.current();
+      waveEndCancelRef.current = null;
+    }
+    if (waveTickerRef.current) {
+      waveTickerRef.current.stop();
+      waveTickerRef.current = null;
+    }
+    worldBossIdRef.current = null;
+    worldBossDeadlineWaveRef.current = null;
+    setMonstersSpawnedInWave(0);
+    setMonstersKilledInWave(0);
+    setWaveTimeLeftMs(WAVE_TOTAL_DURATION_MS);
+    setSpawnTimeLeftMs(WAVE_SPAWN_DURATION_MS);
+    setCurrentWave(prev => {
+      const next = prev + 1;
+      if (next > WAVE_CONFIG.totalWaves) {
+        setGameState('gameover');
+        return prev;
+      }
+      return next;
+    });
+  }, [gameState, setGameState]);
+
   return {
     gameState,
     setGameState,
@@ -272,5 +342,6 @@ export function useWaveSystem(selectionTarget: SelectionTarget, setSelectionTarg
     handleAttackMonster,
     handleStart,
     handleRestart,
+    handleSkipWave,
   };
 }

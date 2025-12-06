@@ -116,6 +116,7 @@ export default function GameScene() {
     handleAttackMonster,
     handleRestart,
     handleStart,
+    handleSkipWave,
   } = useWaveSystem(selectionTarget, setSelectionTarget);
 
   // Track owned politician ids (for recipe availability UI)
@@ -219,6 +220,7 @@ export default function GameScene() {
         totalMonstersKilled={totalMonstersKilled}
         targetingMode={targetingMode}
         onChangeTargetingMode={setTargetingMode}
+        onSkipWave={handleSkipWave}
       />
 
       {/* Spawn Button */}

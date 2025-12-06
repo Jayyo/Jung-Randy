@@ -46,6 +46,7 @@ export interface MonsterData {
   progress: number;
   isDying: boolean;
   isBoss: boolean; // true if this is a boss monster (every 10 waves)
+  isWorldBoss?: boolean;
 }
 
 // Game state type

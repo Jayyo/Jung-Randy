@@ -34,7 +34,7 @@ export function Monster({
   const progressRef = useRef(data.progress);
   const opacityRef = useRef(1);
 
-  // Apply wave-based size multiplier
+  // Apply wave-based size multiplier (world boss already scaled up at spawn)
   const finalScale = MONSTER_SCALE * data.sizeMultiplier;
 
   const { scene: runScene, animations: runAnims } = useGLTF('/assets/monsters/monster_run.glb');
@@ -82,6 +82,12 @@ export function Monster({
     } else {
       action.setLoop(THREE.LoopRepeat, Infinity);
       action.clampWhenFinished = false;
+
+      // World boss: keep animation frozen
+      if (data.isWorldBoss) {
+        action.paused = true;
+        action.time = 0;
+      }
     }
 
     action.enabled = true;
@@ -98,6 +104,16 @@ export function Monster({
     // This prevents monsters from bunching up when the tab is inactive
     const MAX_DELTA = 0.1; // Maximum 100ms per frame
     const clampedDelta = Math.min(delta, MAX_DELTA);
+
+    // World boss stays anchored with no movement/animation
+    if (data.isWorldBoss && !data.isDying) {
+      if (groupRef.current) {
+        const pos = positionRef.current;
+        groupRef.current.position.set(pos.x, pos.y, pos.z);
+        groupRef.current.rotation.y = 0;
+      }
+      return;
+    }
 
     if (mixerRef.current) {
       mixerRef.current.update(clampedDelta);
@@ -129,23 +145,27 @@ export function Monster({
       return;
     }
 
-    // Update position with clamped delta
-    progressRef.current += clampedDelta * MONSTER_SPEED;
-    if (progressRef.current >= 1) {
-      progressRef.current = 0;
-    }
+    if (!data.isWorldBoss) {
+      // Update position with clamped delta
+      progressRef.current += clampedDelta * MONSTER_SPEED;
+      if (progressRef.current >= 1) {
+        progressRef.current = 0;
+      }
 
-    if (groupRef.current) {
-      const { x, z, rotationY } = getPathPosition(progressRef.current);
-      groupRef.current.position.set(x, 0, z);
-      groupRef.current.rotation.y = rotationY;
+      if (groupRef.current) {
+        const { x, z, rotationY } = getPathPosition(progressRef.current);
+        groupRef.current.position.set(x, 0, z);
+        groupRef.current.rotation.y = rotationY;
 
-      // Update shared position ref for attack checks
-      positionRef.current.set(x, 0, z);
+        // Update shared position ref for attack checks
+        positionRef.current.set(x, 0, z);
+      }
     }
   });
 
-  const initial = getPathPosition(progressRef.current);
+  const initial = data.isWorldBoss
+    ? { x: positionRef.current.x, z: positionRef.current.z, rotationY: 0 }
+    : getPathPosition(progressRef.current);
 
   return (
     <group

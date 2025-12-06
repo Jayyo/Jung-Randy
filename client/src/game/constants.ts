@@ -26,6 +26,7 @@ export const CHARACTER2_SCALE = 1.0;
 export const MONSTER_SCALE = 0.8;
 export const MONSTER_SPEED = 0.07;
 export const TARGET_CLUSTER_RADIUS = 3.5;
+export const WORLD_BOSS_SCALE_MULTIPLIER = 3;
 
 // Movement
 export const CHARACTER_SPEED = 2.5;

@@ -7,6 +7,7 @@ interface ControlsPanelProps {
   totalMonstersKilled: number;
   targetingMode: TargetingMode;
   onChangeTargetingMode: (mode: TargetingMode) => void;
+  onSkipWave: () => void;
 }
 
 export function ControlsPanel({
@@ -15,6 +16,7 @@ export function ControlsPanel({
   totalMonstersKilled,
   targetingMode,
   onChangeTargetingMode,
+  onSkipWave,
 }: ControlsPanelProps) {
   const targetingOptions: { id: TargetingMode; label: string }[] = [
     { id: 'closest', label: '가장 가까움' },
@@ -63,6 +65,26 @@ export function ControlsPanel({
           ))}
         </div>
       </div>
+      {import.meta.env.DEV && (
+        <div style={{ margin: '8px 0' }}>
+          <button
+            onClick={onSkipWave}
+            style={{
+              width: '100%',
+              padding: '8px 10px',
+              borderRadius: 8,
+              border: '1px solid #ff6b6b',
+              background: 'rgba(255, 107, 107, 0.12)',
+              color: '#fff',
+              fontSize: 11,
+              cursor: 'pointer',
+              fontWeight: 700,
+            }}
+          >
+            다음 웨이브 (디버그)
+          </button>
+        </div>
+      )}
       <hr style={{ margin: '10px 0', borderColor: '#444' }} />
       <p style={{ margin: '5px 0', color: '#666' }}>Left-drag: Box select</p>
       <p style={{ margin: '5px 0', color: '#666' }}>Right-click: Move</p>

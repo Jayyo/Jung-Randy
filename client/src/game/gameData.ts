@@ -131,6 +131,8 @@ export interface RoundScalingConfig {
   hpExponentialBase: number; // for exponential: baseHp * (base ^ (wave - 1))
   hpPostExponentialBase?: number; // optional softer base after a soft cap
   hpSoftCapWave?: number; // wave after which growth eases
+  bossHpMultiplier?: number; // extra multiplier for world bosses
+  worldBossHpMultiplier?: number; // extra multiplier for world boss on platform
   
   // Damage scaling
   damageScalingType: 'linear' | 'exponential';
@@ -143,6 +145,8 @@ export interface RoundScalingConfig {
   defenseExponentialBase: number;
   defensePostExponentialBase?: number;
   defenseSoftCapWave?: number;
+  bossDefenseMultiplier?: number;
+  worldBossDefenseMultiplier?: number;
   
   // Size scaling (always linear for visual consistency)
   sizeMultiplierPerWave: number;
@@ -155,6 +159,8 @@ export const ROUND_SCALING_CONFIG: RoundScalingConfig = {
   hpExponentialBase: 1.22,
   hpPostExponentialBase: 1.1,
   hpSoftCapWave: 30,
+  bossHpMultiplier: 10,
+  worldBossHpMultiplier: 15,
   
   // Damage: Not used (monsters don't attack), but kept for compatibility
   damageScalingType: 'linear',
@@ -167,6 +173,8 @@ export const ROUND_SCALING_CONFIG: RoundScalingConfig = {
   defenseExponentialBase: 1.18,
   defensePostExponentialBase: 1.08,
   defenseSoftCapWave: 30,
+  bossDefenseMultiplier: 5,
+  worldBossDefenseMultiplier: 7,
   
   // Size: Always linear (visual only)
   sizeMultiplierPerWave: 0.04, // +4% size per wave
@@ -215,7 +223,7 @@ export function getMonsterStatsForWave(wave: number): {
   
   // Boss: 10x HP
   if (isBoss) {
-    hp = hp * 10;
+    hp = hp * (scaling.bossHpMultiplier ?? 10);
   }
   
   // Calculate Damage - not used (monsters don't attack), but kept for type compatibility
@@ -240,7 +248,7 @@ export function getMonsterStatsForWave(wave: number): {
   
   // Boss: 5x Defense
   if (isBoss) {
-    defense = defense * 5;
+    defense = defense * (scaling.bossDefenseMultiplier ?? 5);
   }
   
   // Size is always linear
