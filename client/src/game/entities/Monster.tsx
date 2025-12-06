@@ -18,9 +18,17 @@ interface MonsterProps {
   onDeath: () => void;
   onClick: () => void;
   isSelected: boolean;
+  hideOverlay?: boolean;
 }
 
-export function Monster({ data, positionRef, onDeath, onClick, isSelected }: MonsterProps) {
+export function Monster({
+  data,
+  positionRef,
+  onDeath,
+  onClick,
+  isSelected,
+  hideOverlay = false,
+}: MonsterProps) {
   const groupRef = useRef<THREE.Group>(null);
   const mixerRef = useRef<THREE.AnimationMixer | null>(null);
   const progressRef = useRef(data.progress);
@@ -160,7 +168,7 @@ export function Monster({ data, positionRef, onDeath, onClick, isSelected }: Mon
         </mesh>
       )}
 
-      {!data.isDying && (
+      {!data.isDying && !hideOverlay && (
         <Html position={[0, 4, 0]} center>
           <div style={{
             width: '60px',

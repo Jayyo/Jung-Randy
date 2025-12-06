@@ -44,9 +44,20 @@ interface CharacterProps {
   monsterPosRefs: Map<string, THREE.Vector3>;
   onAttackMonster: (attackerId: string, monsterId: string, damage: number) => void;
   onStateChange: (charId: string, state: CharacterData['state']) => void;
+  hideOverlay?: boolean;
 }
 
-export function Character({ data, isSelected, onSelect, onSelectAllSameType, monsters, monsterPosRefs, onAttackMonster, onStateChange }: CharacterProps) {
+export function Character({
+  data,
+  isSelected,
+  onSelect,
+  onSelectAllSameType,
+  monsters,
+  monsterPosRefs,
+  onAttackMonster,
+  onStateChange,
+  hideOverlay = false,
+}: CharacterProps) {
   const groupRef = useRef<THREE.Group>(null);
   const mixerRef = useRef<THREE.AnimationMixer | null>(null);
   const actionRef = useRef<THREE.AnimationAction | null>(null);
@@ -513,7 +524,7 @@ export function Character({ data, isSelected, onSelect, onSelectAllSameType, mon
       )}
 
       {/* Name and tier label for politician units */}
-      {data.politician && (
+      {data.politician && !hideOverlay && (
         <Html
           position={[0, 2.5 / charScale, 0]}
           center

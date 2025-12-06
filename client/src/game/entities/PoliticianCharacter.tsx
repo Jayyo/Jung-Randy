@@ -39,6 +39,7 @@ interface PoliticianCharacterProps {
   monsterPosRefs: Map<string, THREE.Vector3>;
   onAttackMonster: (attackerId: string, monsterId: string, damage: number) => void;
   onStateChange: (charId: string, state: CharacterData['state']) => void;
+  hideOverlay?: boolean;
 }
 
 export function PoliticianCharacter({
@@ -49,7 +50,8 @@ export function PoliticianCharacter({
   monsters,
   monsterPosRefs,
   onAttackMonster,
-  onStateChange
+  onStateChange,
+  hideOverlay = false,
 }: PoliticianCharacterProps) {
   const groupRef = useRef<THREE.Group>(null);
   const mixerRef = useRef<THREE.AnimationMixer | null>(null);
@@ -418,7 +420,7 @@ export function PoliticianCharacter({
       />
 
       {/* Name and tier label for politician units */}
-      {data.politician && (
+      {data.politician && !hideOverlay && (
         <Html
           position={[0, 2.5 / charScale, 0]}
           center

@@ -308,6 +308,7 @@ export default function GameScene() {
               onDeath={() => handleMonsterDeath(monster.id)}
               onClick={() => handleSelectMonster(monster.id)}
               isSelected={selectionTarget?.type === 'monster' && selectionTarget.id === monster.id}
+              hideOverlay={isRecipePanelOpen}
             />
           );
         })}
@@ -325,6 +326,7 @@ export default function GameScene() {
               monsterPosRefs={monsterPosRefs.current}
               onAttackMonster={handleAttackMonster}
               onStateChange={handleStateChange}
+              hideOverlay={isRecipePanelOpen}
             />
           ) : (
             <Character
@@ -337,6 +339,7 @@ export default function GameScene() {
               monsterPosRefs={monsterPosRefs.current}
               onAttackMonster={handleAttackMonster}
               onStateChange={handleStateChange}
+              hideOverlay={isRecipePanelOpen}
             />
           )
         ))}
