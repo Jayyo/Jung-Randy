@@ -41,7 +41,7 @@ export interface MonsterData {
 }
 
 // Game state type
-export type GameState = 'playing' | 'gameover';
+export type GameState = 'lobby' | 'loading' | 'playing' | 'gameover';
 
 // Selection target type
 export type SelectionTarget = {

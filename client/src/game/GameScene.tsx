@@ -1,6 +1,6 @@
 // ===== MAIN GAME SCENE =====
 // Modular entry point - all logic is split into separate modules
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
@@ -26,6 +26,8 @@ import {
   SpawnButton,
   SelectionBox,
   RecipePanel,
+  LobbyOverlay,
+  preloadCharacterPreviewsAsync,
 } from './ui';
 
 // Chat
@@ -39,6 +41,7 @@ import { useWaveSystem, useCharacterSystem } from './hooks';
 
 // Constants
 import { LANE_OFFSET } from './constants';
+import { ALL_POLITICIANS } from './data/politicians';
 
 export default function GameScene() {
   // Recipe panel state
@@ -110,6 +113,7 @@ export default function GameScene() {
     handleMonsterDeath,
     handleAttackMonster,
     handleRestart,
+    handleStart,
   } = useWaveSystem(selectionTarget, setSelectionTarget);
 
   // Track owned politician ids (for recipe availability UI)
@@ -138,10 +142,56 @@ export default function GameScene() {
     }
   }, [selectedCharacterIds, selectionTarget, setSelectionTarget]);
 
+  // Preload targets for character previews (id + color)
+  const previewTargets = useMemo(
+    () => ALL_POLITICIANS.map(p => ({ id: p.id, color: p.color })),
+    []
+  );
+
+  // Start game with preload step
+  const handleStartWithPreload = useCallback(() => {
+    handleStart(() => preloadCharacterPreviewsAsync(previewTargets));
+  }, [handleStart, previewTargets]);
+
   return (
     <div style={{ width: '100vw', height: '100vh', background: '#1a1a2e' }}>
       {/* Selection Box Overlay */}
       <SelectionBox selectionBox={selectionBox} />
+
+      {/* Loading Overlay */}
+      {gameState === 'loading' && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'rgba(10, 14, 30, 0.8)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 250,
+            backdropFilter: 'blur(2px)',
+          }}
+        >
+          <div
+            style={{
+              padding: '18px 22px',
+              borderRadius: 12,
+              background: 'rgba(17, 24, 39, 0.9)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              color: '#e5e7eb',
+              fontWeight: 800,
+              boxShadow: '0 15px 40px rgba(0,0,0,0.4)',
+            }}
+          >
+            로딩중... (캐릭터 미리 불러오는 중)
+          </div>
+        </div>
+      )}
+
+      {/* Lobby Overlay */}
+      {gameState === 'lobby' && (
+        <LobbyOverlay onStart={handleStartWithPreload} />
+      )}
 
       {/* Game Over Overlay */}
       {gameState === 'gameover' && (
@@ -152,11 +202,13 @@ export default function GameScene() {
       )}
 
       {/* Top UI - Wave Info */}
-      <WaveInfo
-        currentWave={currentWave}
-        waveTimeLeftMs={waveTimeLeftMs}
-        monstersAlive={monsters.length}
-      />
+      {gameState === 'playing' && (
+        <WaveInfo
+          currentWave={currentWave}
+          waveTimeLeftMs={waveTimeLeftMs}
+          monstersAlive={monsters.length}
+        />
+      )}
 
       {/* Left UI Panel */}
       <ControlsPanel

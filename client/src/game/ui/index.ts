@@ -6,5 +6,6 @@ export { ControlsPanel } from './ControlsPanel';
 export { SpawnButton } from './SpawnButton';
 export { SelectionBox } from './SelectionBox';
 export { RecipePanel } from './RecipePanel';
-export { CharacterPreview, useCharacterPreview, preloadCharacterPreviews } from './CharacterPreview';
+export { CharacterPreview, useCharacterPreview, preloadCharacterPreviews, preloadCharacterPreviewsAsync } from './CharacterPreview';
 export { BuildingPanel } from './BuildingPanel';
+export { LobbyOverlay } from './LobbyOverlay';

@@ -196,7 +196,10 @@ function RecipeRow({
     >
       {/* Materials */}
       {materials.map((mat, idx) => (
-        <div key={mat.id} style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+        <div
+          key={`${mat.id}-${idx}`}
+          style={{ display: 'flex', alignItems: 'center', gap: 3 }}
+        >
           <PoliticianCard
             politician={mat}
             size="small"

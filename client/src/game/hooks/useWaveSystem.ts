@@ -34,13 +34,14 @@ interface UseWaveSystemReturn {
   // Callbacks
   handleMonsterDeath: (id: string) => void;
   handleAttackMonster: (attackerId: string, monsterId: string, damage: number) => void;
+  handleStart: (preload?: () => Promise<void>) => Promise<void>;
   handleRestart: () => void;
 }
 
 export function useWaveSystem(selectionTarget: SelectionTarget, setSelectionTarget: (target: SelectionTarget) => void): UseWaveSystemReturn {
   // Game state
-  const [gameState, setGameState] = useState<GameState>('playing');
-  const [currentWave, setCurrentWave] = useState(1);
+  const [gameState, setGameState] = useState<GameState>('lobby');
+  const [currentWave, setCurrentWave] = useState(0);
   const [monstersSpawnedInWave, setMonstersSpawnedInWave] = useState(0);
   const [monstersKilledInWave, setMonstersKilledInWave] = useState(0);
   const [totalMonstersKilled, setTotalMonstersKilled] = useState(0);
@@ -209,8 +210,7 @@ export function useWaveSystem(selectionTarget: SelectionTarget, setSelectionTarg
     }
   }, [selectionTarget, setSelectionTarget]);
 
-  // Restart game
-  const handleRestart = useCallback(() => {
+  const resetGameState = useCallback(() => {
     waveTransitioningRef.current = false;
     if (spawnTimerRef.current) {
       clearTimeout(spawnTimerRef.current);
@@ -227,7 +227,6 @@ export function useWaveSystem(selectionTarget: SelectionTarget, setSelectionTarg
     waveStartTimeRef.current = 0;
     setWaveTimeLeftMs(WAVE_TOTAL_DURATION_MS);
     setSpawnTimeLeftMs(WAVE_SPAWN_DURATION_MS);
-    setGameState('playing');
     setCurrentWave(0);
     setMonstersSpawnedInWave(0);
     setMonstersKilledInWave(0);
@@ -235,8 +234,27 @@ export function useWaveSystem(selectionTarget: SelectionTarget, setSelectionTarg
     setMonsters([]);
     monsterPosRefs.current.clear();
     monsterIdCounterRef.current = 0;
-    setTimeout(() => setCurrentWave(1), 100);
   }, []);
+
+  // Start game from lobby
+  const handleStart = useCallback(async (preload?: () => Promise<void>) => {
+    setGameState('loading');
+    if (preload) {
+      try {
+        await preload();
+      } catch (err) {
+        console.error('Preload failed:', err);
+      }
+    }
+    resetGameState();
+    setGameState('playing');
+    setTimeout(() => setCurrentWave(1), 50);
+  }, [resetGameState]);
+
+  // Restart game after gameover
+  const handleRestart = useCallback(() => {
+    handleStart();
+  }, [handleStart]);
 
   return {
     gameState,
@@ -252,6 +270,7 @@ export function useWaveSystem(selectionTarget: SelectionTarget, setSelectionTarg
     monsterPosRefs,
     handleMonsterDeath,
     handleAttackMonster,
+    handleStart,
     handleRestart,
   };
 }

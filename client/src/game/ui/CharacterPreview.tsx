@@ -225,3 +225,18 @@ export function preloadCharacterPreviews(characters: Array<{ id: string; color: 
     });
   }).catch(console.error);
 }
+
+// Async variant so callers can await preload completion
+export async function preloadCharacterPreviewsAsync(characters: Array<{ id: string; color: string }>): Promise<void> {
+  initSharedResources();
+  await loadBaseModel();
+  characters.forEach(({ id, color }) => {
+    const cacheKey = `${id}-${color}`;
+    if (!previewCache.has(cacheKey)) {
+      const url = renderPreview(color);
+      if (url) {
+        previewCache.set(cacheKey, url);
+      }
+    }
+  });
+}
