@@ -23,6 +23,7 @@ interface StatusPanelProps {
   onUseActiveSkill: (charId: string) => void;
   onSelectCharacter: (id: string) => void;
   onCombine?: (option: CombinationOption, materialCharIds: string[]) => void;
+  onRallySameUnits: (charId: string) => void;
   selectedBuilding?: BuildingType | null;
 }
 
@@ -33,6 +34,7 @@ export function StatusPanel({
   onUseActiveSkill,
   onSelectCharacter,
   onCombine,
+  onRallySameUnits,
   selectedBuilding,
 }: StatusPanelProps) {
   const [multiPage, setMultiPage] = useState(0);
@@ -151,6 +153,7 @@ export function StatusPanel({
   const activeCooldownRemaining = activeSkill
     ? Math.max(0, activeSkill.cooldown - (Date.now() - char.lastActiveSkillTime))
     : 0;
+  const sameTypeCount = characters.filter(c => c.stats.id === stats.id && c.id !== char.id).length;
 
   // If politician is selected, show combination panel
   if (char.politician && onCombine) {
@@ -159,6 +162,7 @@ export function StatusPanel({
         char={char}
         characters={characters}
         onCombine={onCombine}
+        onRallySameUnits={onRallySameUnits}
       />
     );
   }
@@ -177,11 +181,11 @@ export function StatusPanel({
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 10 }}>
-          {passiveSkill && (
-            <div
-              title={`${passiveSkill.name}: ${passiveSkill.description}\n${Math.round(passiveSkill.triggerChance * 100)}% chance, ${passiveSkill.damageMultiplier}x damage`}
-              style={skillBox('#2a2a4a', '#6a6a8a', '#ffffff', 'help')}
+      <div style={{ display: 'flex', gap: 10 }}>
+        {passiveSkill && (
+          <div
+            title={`${passiveSkill.name}: ${passiveSkill.description}\n${Math.round(passiveSkill.triggerChance * 100)}% chance, ${passiveSkill.damageMultiplier}x damage`}
+            style={skillBox('#2a2a4a', '#6a6a8a', '#ffffff', 'help')}
             >
               P
             </div>
@@ -207,6 +211,15 @@ export function StatusPanel({
             </div>
           )}
         </div>
+        <button
+          type="button"
+          onClick={() => onRallySameUnits(char.id)}
+          style={{ ...primaryBtn, opacity: sameTypeCount === 0 ? 0.5 : 1, cursor: sameTypeCount === 0 ? 'not-allowed' : 'pointer' }}
+          disabled={sameTypeCount === 0}
+          title={sameTypeCount === 0 ? '같은 유닛이 없어서 집결 불가' : '선택한 유닛 위치로 같은 유닛 집결'}
+        >
+          집결 ({sameTypeCount})
+        </button>
       </div>
     </div>
   );
@@ -295,6 +308,18 @@ const gridRow = {
   gridTemplateColumns: 'repeat(9, 1fr)',
   gap: '8px',
   maxWidth: '640px',
+} as const;
+
+const primaryBtn = {
+  padding: '10px 14px',
+  background: '#d946ef',
+  border: '1px solid #f472b6',
+  borderRadius: 8,
+  color: '#fff',
+  fontWeight: 700,
+  fontSize: 12,
+  cursor: 'pointer',
+  minWidth: 120,
 } as const;
 
 const skillBox = (bg: string, border: string, _color: string, cursor: string, dim?: boolean) => ({
@@ -630,12 +655,14 @@ interface PoliticianStatusPanelProps {
   char: CharacterData;
   characters: CharacterData[];
   onCombine: (option: CombinationOption, materialCharIds: string[]) => void;
+  onRallySameUnits: (charId: string) => void;
 }
 
-function PoliticianStatusPanel({ char, characters, onCombine }: PoliticianStatusPanelProps) {
+function PoliticianStatusPanel({ char, characters, onCombine, onRallySameUnits }: PoliticianStatusPanelProps) {
   const politician = char.politician!;
   const partyColor = PARTY_COLORS[politician.party];
   const tierColor = TIER_COLORS[politician.tier];
+  const sameTypeCount = characters.filter(c => c.stats.id === char.stats.id && c.id !== char.id).length;
 
   // Get combination options for this politician
   const combinationOptions = useMemo(() => {
@@ -716,10 +743,24 @@ function PoliticianStatusPanel({ char, characters, onCombine }: PoliticianStatus
             }}>
               {PARTY_NAMES[politician.party]}
             </span>
-          </div>
-          <div style={{ display: 'flex', gap: 15, fontSize: 12, color: '#ccc' }}>
-            <span>공격력: {char.stats.attack}</span>
-          </div>
+            <button
+              type="button"
+              onClick={() => onRallySameUnits(char.id)}
+              disabled={sameTypeCount === 0}
+              title={sameTypeCount === 0 ? '같은 유닛이 없어서 집결 불가' : '선택한 유닛 위치로 같은 유닛 집결'}
+              style={{
+                ...primaryBtn,
+                padding: '6px 10px',
+              opacity: sameTypeCount === 0 ? 0.5 : 1,
+              cursor: sameTypeCount === 0 ? 'not-allowed' : 'pointer',
+            }}
+          >
+            집결 ({sameTypeCount})
+          </button>
+        </div>
+        <div style={{ display: 'flex', gap: 15, fontSize: 12, color: '#ccc' }}>
+          <span>공격력: {char.stats.attack}</span>
+        </div>
         </div>
 
         {/* Combination Options - Compact with tooltip */}

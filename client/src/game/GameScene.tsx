@@ -100,6 +100,7 @@ export default function GameScene() {
     handleUseActiveSkill,
     handleStateChange,
     handleStopCommand,
+    handleRallySameUnits,
     handleSaveGroup,
     handleSelectGroup,
   } = useCharacterSystem();
@@ -238,6 +239,7 @@ export default function GameScene() {
         onUseActiveSkill={handleUseActiveSkill}
         onSelectCharacter={handleSelectSingleCharacter}
         onCombine={executeCombine}
+        onRallySameUnits={handleRallySameUnits}
         selectedBuilding={selectedBuilding}
       />
 
